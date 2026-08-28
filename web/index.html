@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Раскатка адресов</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="ico.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <header>
+        <nav id="menu">
+            <ul>
+                <li class="me active" onclick="switchTab('raskatka-tool')" id="tab-raskatka">Раскатка</li>
+                <li class="me" onclick="switchTab('sbor-tool')" id="tab-sbor">Сбор дополнений</li>
+                <li class="me" onclick="switchTab('search-tool')" id="tab-search">Дополнение таблицы</li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        <section id="search-tool" class="tab-section hidden-element">
+            <h1>Дополнение таблицы</h1>
+            <form onsubmit="return false;">
+                <div class="output-wrapper">
+                    <div class="output">
+                        <label for="search_cities">Список городов:</label>
+                        <textarea id="search_cities" class="textarea-tall" placeholder="Москва&#10;Сочи&#10;..."></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="search_regions">Список регионов (Если есть):</label>
+                        <textarea id="search_regions" class="textarea-tall" placeholder="Московская область&#10;Краснодарский край&#10;..."></textarea>
+                    </div>
+                </div>
+
+                <div class="search-options"><label for="search_search_type">Тип поиска:</label></div>
+                <div class="output-wrapper">
+                    <div class="output">
+                        <select id="search_search_type" onchange="toggleCustomSearchInputSearch()">
+                            <option value="standard">Стандартный (Поиск города региона)</option>
+                            <option value="custom">Пользовательский (Поиск ... в городе регионе)</option>
+                        </select>
+                    </div>
+                    <div class="output">
+                        <input type="text" id="search_custom_query" class="hidden-element" placeholder="Введите что искать в городе">
+                    </div>
+                </div>
+            </form>
+    
+            <form onsubmit="return false;">
+                <div class="output-wrapper">
+                    <div class="output-bottom">
+                        <label>Редактирование найденных данных:</label>
+                        <div class="editor-grid">
+                            <div>
+                                <label class="editor-label">Город:</label>
+                                <input type="text" id="search_out_city" class="editor-input">
+                            </div>
+                            <div>
+                                <label class="editor-label">Регион:</label>
+                                <input type="text" id="search_out_region" class="editor-input">
+                            </div>
+                            <div>
+                                <label class="editor-label">Транслит:</label>
+                                <input type="text" id="search_out_translit" class="editor-input">
+                            </div>
+                            <div>
+                                <label class="editor-label">Тип НП:</label>
+                                <input type="text" id="search_out_type" class="editor-input">
+                            </div>
+                            <div>
+                                <label class="editor-label">Адрес (нормализованный):</label>
+                                <input type="text" id="search_out_address" class="editor-input">
+                            </div>
+                            <div>
+                                <label class="editor-label">Комментарий:</label>
+                                <input type="text" id="search_out_comm" placeholder="(не обязательный блок)" class="editor-input">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="editor-label">Полный адрес (из карточки):</label>
+                                <input type="text" id="search_out_full_address" class="editor-input">
+                            </div>
+                            <div>
+                                <label class="editor-label">Координаты:</label>
+                                <input type="text" id="search_out_coords" class="editor-input">
+                            </div>
+                            <div>
+                                <label class="editor-label">Индекс:</label>
+                                <input type="text" id="search_out_index" class="editor-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="output">
+                        <label for="search_skipped_cities">Пропущенные:</label>
+                        <textarea id="search_skipped_cities" readonly class="textarea-skipped"></textarea>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <div class="side-buttons">
+                        <button type="button" id="search_btn_main_action" onclick="handleSearchCycle()">Начать</button>
+                        <button type="button" id="search_btn_capture" onclick="captureCurrentData()" disabled>Записать</button>
+                        <button type="button" id="search_btn_save" onclick="saveDataToTable()" disabled>Сохранить</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section id="sbor-tool" class="tab-section hidden-element">
+            <h1>Сбор дополнений</h1>
+            <form onsubmit="return false;">
+                <div class="output-wrapper">
+                    <div class="output">
+                        <label for="sbor_adresses">Адрес:</label>
+                        <textarea id="sbor_adresses" class="textarea-tall sync-scroll" placeholder="ул. Староволынская, 10&#10;ул. Декабристов, 71&#10;..."></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="sbor_cities">Город:</label>
+                        <textarea id="sbor_cities" class="textarea-tall sync-scroll" placeholder="Москва&#10;Сочи&#10;..."></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="sbor_regions">Регион:</label>
+                        <textarea id="sbor_regions" class="textarea-tall sync-scroll" placeholder="Московская область&#10;Краснодарский край&#10;..."></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="sbor_errors">Ошибки/Не найденные:</label>
+                        <textarea id="sbor_errors" readonly class="textarea-skipped"></textarea>
+                    </div>
+                </div>
+            </form>
+
+            <form onsubmit="return false;">
+                <div class="output-wrapper">
+                    <div class="output">
+                        <label for="sbor_translit">Транслит:</label>
+                        <textarea id="sbor_translit" class="textarea-tall sync-scroll"></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="sbor_coords">Координаты:</label>
+                        <textarea id="sbor_coords" class="textarea-tall sync-scroll" ></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="sbor_out_regions">Регион:</label>
+                        <textarea id="sbor_out_regions" class="textarea-tall sync-scroll"></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="sbor_index">Индекс:</label>
+                        <textarea id="sbor_index" class="textarea-tall sync-scroll"></textarea>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <div class="side-buttons">
+                        <button type="button" id="sbor_btn_start" onclick="btnSborStart()">Начать</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section id="raskatka-tool" class="tab-section active">
+            <h1>Раскатка</h1>
+            <form onsubmit="return false;">
+                <div class="output-wrapper">
+                    <div class="output">
+                        <label for="raskatka_cities">Город:</label>
+                        <textarea id="raskatka_cities" class="textarea-tall sync-scroll" placeholder="Москва&#10;Сочи&#10;..."></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="raskatka_regions">Регион:</label>
+                        <textarea id="raskatka_regions" class="textarea-tall sync-scroll" placeholder="Московская область&#10;Краснодарский край&#10;..."></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="raskatka_comm">Комментарий:</label>
+                        <textarea id="raskatka_comm" class="textarea-tall sync-scroll" placeholder="метро&#10; &#10;..."></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="raskatka_errors">Ошибки/Не найденные:</label>
+                        <textarea id="raskatka_errors" readonly class="textarea-skipped"></textarea>
+                    </div>
+                </div>
+
+                <div class="search-options"><label for="raskatka_search_type">Выбор базы:</label></div>
+                <div class="output-wrapper">
+                    <div class="output">
+                        <select id="raskatka_search_type" >
+                            <option value="parser and rolling">Общая и начальная</option>
+                            <option value="parser">Общая</option>
+                            <option value="rolling">Начальная</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+
+            <form onsubmit="return false;">
+                <div class="output-wrapper">
+                    <div class="output">
+                        <label for="raskatka_adresses">Адрес:</label>
+                        <textarea id="raskatka_adresses" class="textarea-tall sync-scroll"></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="raskatka_translit">Транслит:</label>
+                        <textarea id="raskatka_translit" class="textarea-tall sync-scroll"></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="raskatka_out_regions">Регион:</label>
+                        <textarea id="raskatka_out_regions" class="textarea-tall sync-scroll"></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="raskatka_coords">Координаты:</label>
+                        <textarea id="raskatka_coords" class="textarea-tall sync-scroll" ></textarea>
+                    </div>
+                    <div class="output">
+                        <label for="raskatka_index">Индекс:</label>
+                        <textarea id="raskatka_index" class="textarea-tall sync-scroll"></textarea>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <div class="side-buttons">
+                        <button type="button" id="raskatka_btn_start" onclick="btnRaskatkaStart()">Начать</button>
+                    </div>
+                    <div id="status_box">Ожидание действий пользователя</div>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script src="eel.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

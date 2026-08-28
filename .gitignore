@@ -1,0 +1,6 @@
+*.bat
+mypy-381904-f5904f83680b.json
+.venv/
+venv/
+__pycache__/
+utils/geckodriver.exe
