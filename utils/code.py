@@ -15,6 +15,7 @@ from selenium.webdriver.common.keys import Keys
 from transliterate import translit
 import requests
 import ctypes
+import json
 print("Библиотеки импортированы", flush=True)
 # --- ИНИЦИАЛИЗАЦИЯ ---
 try:
@@ -30,7 +31,9 @@ WEB_PATH = f"{os.path.dirname(os.getcwd())}\\web"
 
 # Подключение к Google Таблицам
 try:
-    service_account = gspread.service_account(filename=JSON_KEY)
+    with open(JSON_KEY, "r", encoding="utf-8-sig") as f:
+        credentials_data = json.load(f)
+    service_account = gspread.service_account_from_dict(credentials_data)
     sh = service_account.open("База")
     print("✅ Успешное подключение к Google Таблице База")
     worksheet_rolling = sh.worksheet("Rolling")
