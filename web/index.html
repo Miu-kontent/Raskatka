@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Раскатка адресов</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="ico.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -13,10 +13,12 @@
     <div id="loader" class="loader-overlay">
         <div class="spinner"></div>
         <p id="loader-status">Загрузка приложения...</p>
+        <!-- Контейнер для вывода логов -->
+        <div id="console-logs" class="logs-container"></div>
     </div>
 
     <!-- Диалог обновления -->
-    <div id="version-overlay" class="hidden-element">
+    <div id="version-overlay" class="hidden">
         <div class="version-dialog">
             <h2>🆕 Новая версия доступна</h2>
             <p>Версия <strong id="new-version-text"></strong> доступна на сервере.<br>Текущая версия: <strong id="local-version-text"></strong></p>

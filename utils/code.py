@@ -11,7 +11,6 @@ import re
 import gspread
 import requests
 import ctypes
-print(f"🐞 DEBUG: Loading code.py from {os.path.abspath(__file__)}")
 from time import sleep
 from urllib.parse import quote
 from selenium import webdriver
