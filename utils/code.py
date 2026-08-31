@@ -11,6 +11,7 @@ import re
 import gspread
 import requests
 import ctypes
+import subprocess
 from time import sleep
 from urllib.parse import quote
 from selenium import webdriver
@@ -75,7 +76,7 @@ def check_remote_version():
 
 @eel.expose
 def update_app():
-    """Скачивает обновление с GitHub, распаковывает и перезапускает приложение"""
+    """Скачивает и распаковывает обновление"""
     try:
         eel.addLog("🔄 Скачивание обновления...")
         headers = {"Cache-Control": "no-cache"}
@@ -109,12 +110,17 @@ def update_app():
                     with z.open(member) as source, open(target_path, "wb") as target:
                         shutil.copyfileobj(source, target)
 
-        eel.addLog("✅ Обновление установлено! Перезапуск...")
-        sleep(1)
-        os.execl(sys.executable, sys.executable, *sys.argv)
+        eel.addLog("✅ Обновление успешно распаковано!")
+        return {"success": True}
     except Exception as e:
         eel.addLog(f"❌ Ошибка обновления: {e}")
-        eel.updateStatus("Ошибка обновления")
+        return {"success": False, "message": str(e)}
+
+@eel.expose
+def restart_app():
+    """Чистый перезапуск приложения"""
+    subprocess.Popen([sys.executable] + sys.argv)
+    sys.exit(0)
 
 # --- ИНИЦИАЛИЗАЦИЯ И ПРОВЕРКИ ---
 

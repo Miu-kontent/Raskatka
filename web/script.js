@@ -47,14 +47,26 @@ function showNewVersionAvailable(newVer, localVer) {
     if (overlay) overlay.classList.remove('hidden');
 }
 
-function doUpdate() {
+async function doUpdate() {
     const overlay = document.getElementById('version-overlay');
     const statusEl = document.getElementById('loader-status');
     const spinnerEl = document.getElementById('spinner');
+
     if (overlay) overlay.classList.add('hidden');
-    if (statusEl) statusEl.innerText = "Скачивание обновления...";
+    if (statusEl) statusEl.innerText = "Скачивание и установка обновления...";
     if (spinnerEl) spinnerEl.classList.remove('hidden');
-    eel.update_app()();
+
+    // Ждем завершения распаковки от Python
+    const res = await eel.update_app()();
+
+    if (res && res.success) {
+        if (statusEl) statusEl.innerText = "Обновление установлено! Перезапуск...";
+        setTimeout(() => {
+            eel.restart_app()();
+        }, 1200);
+    } else {
+        if (statusEl) statusEl.innerText = `Ошибка обновления: ${res ? res.message : 'Неизвестная ошибка'}`;
+    }
 }
 
 function skipUpdate() {
