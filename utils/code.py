@@ -11,6 +11,7 @@ import re
 import gspread
 import requests
 import ctypes
+print(f"🐞 DEBUG: Loading code.py from {os.path.abspath(__file__)}")
 from time import sleep
 from urllib.parse import quote
 from selenium import webdriver
@@ -126,7 +127,11 @@ def run_initial_checks():
     # --- ШАГ 1: Проверка версии ---
     local_ver = get_local_version()
     remote_ver = check_remote_version()
-    eel.addLog(f"📋 Локальная версия: {local_ver}")
+    eel.addLog(f"📋 Локальная версия: '{local_ver}'")
+    eel.addLog(f"📋 Удалённая версия: '{remote_ver}'")
+    eel.addLog(f"🐛 parse_version(local): {parse_version(local_ver)}")
+    eel.addLog(f"🐛 parse_version(remote): {parse_version(remote_ver)}")
+    eel.addLog(f"🐛 remote > local: {remote_ver and parse_version(remote_ver) > parse_version(local_ver)}")
 
     if remote_ver and parse_version(remote_ver) > parse_version(local_ver):
         eel.addLog(f"⚠️ Доступна новая версия: {remote_ver}")
