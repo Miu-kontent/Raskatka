@@ -382,7 +382,6 @@ function escapeHtml(text) {
 }
 
 function copyColumnRaskatka(colIndex) {
-    const colNames = ['Адрес', 'Транслит', 'Регион', 'Координаты', 'Индекс'];
     const values = raskatkaTableData.map(row => {
         switch(colIndex) {
             case 0: return row.address;
@@ -391,12 +390,12 @@ function copyColumnRaskatka(colIndex) {
             case 3: return row.coords;
             case 4: return row.index;
         }
-    }).filter(v => v !== '');
+    });
 
     const text = values.join('\n');
     navigator.clipboard.writeText(text).then(() => {
         const btn = document.querySelector(`.copy-col-btn[data-col="${colIndex}"]`);
-        if (btn) showCopiedFeedback(btn, colNames[colIndex]);
+        if (btn) showCopiedFeedback(btn);
     }).catch(err => {
         console.error('Ошибка копирования:', err);
         alert('Не удалось скопировать: ' + err);
@@ -422,17 +421,16 @@ function copyAllRaskatkaTable() {
     
     navigator.clipboard.writeText(tsv).then(() => {
         const btn = document.getElementById('raskatka_copy_all');
-        if (btn) showCopiedFeedback(btn, 'Вся таблица');
+        if (btn) showCopiedFeedback(btn);
     }).catch(err => {
         console.error('Ошибка копирования таблицы:', err);
         alert('Не удалось скопировать таблицу: ' + err);
     });
 }
 
-function showCopiedFeedback(btn, label) {
+function showCopiedFeedback(btn) {
     const originalText = btn.innerText;
-    const suffix = label === 'Вся таблица' ? 'а' : '';
-    btn.innerText = `✓ ${label} скопирован${suffix}`;
+    btn.innerText = '✓ скопировано';
     btn.classList.add('copied');
     btn.disabled = true;
     setTimeout(() => {

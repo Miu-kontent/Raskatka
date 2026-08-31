@@ -219,6 +219,13 @@
                         <label>Результаты раскатки:</label>
                         <div class="table-container">
                             <table id="raskatka-results-table" class="results-table">
+                                <colgroup>
+                                    <col class="col-main">
+                                    <col class="col-main">
+                                    <col class="col-main">
+                                    <col class="col-coords">
+                                    <col class="col-index">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th>Адрес</th>
@@ -229,14 +236,16 @@
                                     </tr>
                                 </thead>
                                 <tbody id="raskatka-results-body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td><button type="button" class="copy-col-btn" data-col="0" title="Копировать адреса">Адрес</button></td>
+                                        <td><button type="button" class="copy-col-btn" data-col="1" title="Копировать транслит">Транслит</button></td>
+                                        <td><button type="button" class="copy-col-btn" data-col="2" title="Копировать регион">Регион</button></td>
+                                        <td><button type="button" class="copy-col-btn" data-col="3" title="Копировать координаты">Координаты</button></td>
+                                        <td><button type="button" class="copy-col-btn" data-col="4" title="Копировать индекс">Индекс</button></td>
+                                    </tr>
+                                </tfoot>
                             </table>
-                        </div>
-                        <div id="raskatka-copy-buttons" class="copy-buttons-row">
-                            <button type="button" class="copy-col-btn" data-col="0" title="Копировать адреса">Адрес</button>
-                            <button type="button" class="copy-col-btn" data-col="1" title="Копировать транслит">Транслит</button>
-                            <button type="button" class="copy-col-btn" data-col="2" title="Копировать регион">Регион</button>
-                            <button type="button" class="copy-col-btn" data-col="3" title="Копировать координаты">Координаты</button>
-                            <button type="button" class="copy-col-btn" data-col="4" title="Копировать индекс">Индекс</button>
                         </div>
                     </div>
                 </div>
