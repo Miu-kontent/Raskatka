@@ -44,14 +44,14 @@ function showNewVersionAvailable(newVer, localVer) {
     const localVerText = document.getElementById('local-version-text');
     if (newVerText) newVerText.innerText = newVer;
     if (localVerText) localVerText.innerText = localVer;
-    if (overlay) overlay.classList.remove('hidden-element');
+    if (overlay) overlay.classList.remove('hidden');
 }
 
 function doUpdate() {
     const overlay = document.getElementById('version-overlay');
     const statusEl = document.getElementById('loader-status');
     const spinnerEl = document.getElementById('spinner');
-    if (overlay) overlay.classList.add('hidden-element');
+    if (overlay) overlay.classList.add('hidden');
     if (statusEl) statusEl.innerText = "Скачивание обновления...";
     if (spinnerEl) spinnerEl.classList.remove('hidden');
     eel.update_app()();
@@ -59,7 +59,7 @@ function doUpdate() {
 
 function skipUpdate() {
     const overlay = document.getElementById('version-overlay');
-    if (overlay) overlay.classList.add('hidden-element');
+    if (overlay) overlay.classList.add('hidden');
     const loaderEl = document.getElementById('loader');
     if (loaderEl) loaderEl.classList.add('hidden');
 }
