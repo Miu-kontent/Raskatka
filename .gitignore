@@ -4,3 +4,6 @@ utils/raskatka-adressov-591861b40918.json
 venv/
 __pycache__/
 utils/geckodriver.exe
+# Приватная документация и память сессий (не коммитить в Git)
+AGENTS.md
+.opencode/
