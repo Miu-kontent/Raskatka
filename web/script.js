@@ -34,7 +34,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     syncScroll();
+
+    document.querySelectorAll('.copy-col-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const col = parseInt(btn.dataset.col, 10);
+            copyColumnRaskatka(col);
+        });
+    });
 });
+
+let raskatkaTableData = [];
 
 // --- ЛОГИКА ВЕРСИИ И ОБНОВЛЕНИЯ ---
 
@@ -323,12 +332,114 @@ function enableRaskatkaButton() {
 
 eel.expose(updateRaskatkaResults);
 function updateRaskatkaResults(addresses, translits, regions, coords, indexes, errors) {
-    document.getElementById('raskatka_adresses').value = addresses.join('\n');
-    document.getElementById('raskatka_translit').value = translits.join('\n');
-    document.getElementById('raskatka_out_regions').value = regions.join('\n');
-    document.getElementById('raskatka_coords').value = coords.join('\n');
-    document.getElementById('raskatka_index').value = indexes.join('\n');
-    document.getElementById('raskatka_errors').value = errors.join('\n');
+    const tbody = document.getElementById('raskatka-results-body');
+    if (!tbody) return;
+
+    const maxLen = Math.max(
+        addresses.length,
+        translits.length,
+        regions.length,
+        coords.length,
+        indexes.length,
+        errors.length
+    );
+
+    raskatkaTableData = [];
+    tbody.innerHTML = '';
+
+    for (let i = 0; i < maxLen; i++) {
+        const row = {
+            address: addresses[i] || '',
+            translit: translits[i] || '',
+            region: regions[i] || '',
+            coords: coords[i] || '',
+            index: indexes[i] || '',
+            error: errors[i] || ''
+        };
+        raskatkaTableData.push(row);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td title="${escapeHtml(row.address)}">${escapeHtml(row.address)}</td>
+            <td title="${escapeHtml(row.translit)}">${escapeHtml(row.translit)}</td>
+            <td title="${escapeHtml(row.region)}">${escapeHtml(row.region)}</td>
+            <td title="${escapeHtml(row.coords)}">${escapeHtml(row.coords)}</td>
+            <td title="${escapeHtml(row.index)}">${escapeHtml(row.index)}</td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    const errArea = document.getElementById('raskatka_errors');
+    if (errArea) {
+        errArea.value = errors.filter(e => e && e.trim() !== '').join('\n');
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function copyColumnRaskatka(colIndex) {
+    const colNames = ['Адрес', 'Транслит', 'Регион', 'Координаты', 'Индекс'];
+    const values = raskatkaTableData.map(row => {
+        switch(colIndex) {
+            case 0: return row.address;
+            case 1: return row.translit;
+            case 2: return row.region;
+            case 3: return row.coords;
+            case 4: return row.index;
+        }
+    }).filter(v => v !== '');
+
+    const text = values.join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector(`.copy-col-btn[data-col="${colIndex}"]`);
+        if (btn) showCopiedFeedback(btn, colNames[colIndex]);
+    }).catch(err => {
+        console.error('Ошибка копирования:', err);
+        alert('Не удалось скопировать: ' + err);
+    });
+}
+
+function copyAllRaskatkaTable() {
+    if (raskatkaTableData.length === 0) {
+        alert('Таблица пуста');
+        return;
+    }
+
+    const headers = ['Адрес', 'Транслит', 'Регион', 'Координаты', 'Индекс'];
+    const rows = raskatkaTableData.map(row => [
+        row.address,
+        row.translit,
+        row.region,
+        row.coords,
+        row.index
+    ]);
+
+    const tsv = [headers.join('\t'), ...rows.map(r => r.join('\t'))].join('\n');
+    
+    navigator.clipboard.writeText(tsv).then(() => {
+        const btn = document.getElementById('raskatka_copy_all');
+        if (btn) showCopiedFeedback(btn, 'Вся таблица');
+    }).catch(err => {
+        console.error('Ошибка копирования таблицы:', err);
+        alert('Не удалось скопировать таблицу: ' + err);
+    });
+}
+
+function showCopiedFeedback(btn, label) {
+    const originalText = btn.innerText;
+    const suffix = label === 'Вся таблица' ? 'а' : '';
+    btn.innerText = `✓ ${label} скопирован${suffix}`;
+    btn.classList.add('copied');
+    btn.disabled = true;
+    setTimeout(() => {
+        btn.innerText = originalText;
+        btn.classList.remove('copied');
+        btn.disabled = false;
+    }, 2000);
 }
 
 eel.expose(update_sbor_output);

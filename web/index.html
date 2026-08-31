@@ -215,31 +215,36 @@
 
             <form onsubmit="return false;">
                 <div class="output-wrapper">
-                    <div class="output">
-                        <label for="raskatka_adresses">Адрес:</label>
-                        <textarea id="raskatka_adresses" class="textarea-tall sync-scroll"></textarea>
-                    </div>
-                    <div class="output">
-                        <label for="raskatka_translit">Транслит:</label>
-                        <textarea id="raskatka_translit" class="textarea-tall sync-scroll"></textarea>
-                    </div>
-                    <div class="output">
-                        <label for="raskatka_out_regions">Регион:</label>
-                        <textarea id="raskatka_out_regions" class="textarea-tall sync-scroll"></textarea>
-                    </div>
-                    <div class="output">
-                        <label for="raskatka_coords">Координаты:</label>
-                        <textarea id="raskatka_coords" class="textarea-tall sync-scroll" ></textarea>
-                    </div>
-                    <div class="output">
-                        <label for="raskatka_index">Индекс:</label>
-                        <textarea id="raskatka_index" class="textarea-tall sync-scroll"></textarea>
+                    <div class="output" style="flex: 1; min-width: 0;">
+                        <label>Результаты раскатки:</label>
+                        <div class="table-container">
+                            <table id="raskatka-results-table" class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Адрес</th>
+                                        <th>Транслит</th>
+                                        <th>Регион</th>
+                                        <th>Координаты</th>
+                                        <th>Индекс</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="raskatka-results-body"></tbody>
+                            </table>
+                        </div>
+                        <div id="raskatka-copy-buttons" class="copy-buttons-row">
+                            <button type="button" class="copy-col-btn" data-col="0" title="Копировать адреса">Адрес</button>
+                            <button type="button" class="copy-col-btn" data-col="1" title="Копировать транслит">Транслит</button>
+                            <button type="button" class="copy-col-btn" data-col="2" title="Копировать регион">Регион</button>
+                            <button type="button" class="copy-col-btn" data-col="3" title="Копировать координаты">Координаты</button>
+                            <button type="button" class="copy-col-btn" data-col="4" title="Копировать индекс">Индекс</button>
+                        </div>
                     </div>
                 </div>
 
                 <div class="button-wrapper">
                     <div class="side-buttons">
                         <button type="button" id="raskatka_btn_start" onclick="btnRaskatkaStart()">Начать</button>
+                        <button type="button" id="raskatka_copy_all" onclick="copyAllRaskatkaTable()">Скопировать всю таблицу</button>
                     </div>
                     <div id="status_box">Ожидание действий пользователя</div>
                 </div>
