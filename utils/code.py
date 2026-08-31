@@ -126,11 +126,6 @@ def run_initial_checks():
     # --- ШАГ 1: Проверка версии ---
     local_ver = get_local_version()
     remote_ver = check_remote_version()
-    eel.addLog(f"📋 Локальная версия: '{local_ver}'")
-    eel.addLog(f"📋 Удалённая версия: '{remote_ver}'")
-    eel.addLog(f"🐛 parse_version(local): {parse_version(local_ver)}")
-    eel.addLog(f"🐛 parse_version(remote): {parse_version(remote_ver)}")
-    eel.addLog(f"🐛 remote > local: {remote_ver and parse_version(remote_ver) > parse_version(local_ver)}")
 
     if remote_ver and parse_version(remote_ver) > parse_version(local_ver):
         eel.addLog(f"⚠️ Доступна новая версия: {remote_ver}")
@@ -187,6 +182,7 @@ def run_initial_checks():
         eel.addLog(f"❌ Ошибка подключения к листу Parser: {e}")
         return {"success": False, "message": f"Ошибка Parser: {str(e)}"}
 
+    eel.addLog(f"Инициализация завершена. Все системы готовы к работе!")
     return {"success": True, "message": "Все системы готовы к работе!"}
 
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
@@ -629,12 +625,5 @@ if __name__ == "__main__":
         user32.ShowWindow(hwnd, 0)
 
     eel.init(WEB_PATH)
-
-    local_ver = get_local_version()
-    remote_ver = check_remote_version()
-    if remote_ver and parse_version(remote_ver) > parse_version(local_ver):
-        eel.addLog(f"⚠️ Доступна новая версия {remote_ver} (текущая: {local_ver})")
-    else:
-        eel.addLog(f"📋 Версия {local_ver} — актуальна")
 
     eel.start("index.html", size=(1000, 1200), port=7000)
