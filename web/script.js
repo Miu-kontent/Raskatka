@@ -11,11 +11,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (result.success) {
             if (statusEl) statusEl.innerText = result.message;
-            
+
             // Задержка для визуального перехода
             setTimeout(() => {
                 if (loaderEl) loaderEl.classList.add('hidden');
             }, 600);
+        } else if (result.new_version) {
+            // Показываем диалог обновления
+            showNewVersionAvailable(result.new_version, result.local_version);
         } else {
             if (statusEl) {
                 statusEl.innerText = `Ошибка инициализации: ${result.message}`;
@@ -32,6 +35,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     syncScroll();
 });
+
+// --- ЛОГИКА ВЕРСИИ И ОБНОВЛЕНИЯ ---
+
+function showNewVersionAvailable(newVer, localVer) {
+    const overlay = document.getElementById('version-overlay');
+    const newVerText = document.getElementById('new-version-text');
+    const localVerText = document.getElementById('local-version-text');
+    if (newVerText) newVerText.innerText = newVer;
+    if (localVerText) localVerText.innerText = localVer;
+    if (overlay) overlay.classList.remove('hidden');
+}
+
+function doUpdate() {
+    const overlay = document.getElementById('version-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    eel.update_app()();
+}
+
+function skipUpdate() {
+    const overlay = document.getElementById('version-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    // Загружаем UI как обычно
+    const loaderEl = document.getElementById('loader');
+    if (loaderEl) loaderEl.classList.add('hidden');
+}
+
+// --- ЛОГИКА ПРЕЛОАДЕРА И ЛОГОВ ---
+
+eel.expose(addLog);
+function addLog(message) {
+    const logBox = document.getElementById('console-logs');
+    if (logBox) {
+        const line = document.createElement('div');
+        line.textContent = message;
+        logBox.appendChild(line);
+        logBox.scrollTop = logBox.scrollHeight;
+    } else {
+        const loaderStatus = document.getElementById('loader-status');
+        if (loaderStatus && !loaderStatus.innerText.startsWith("Загрузка")) {
+            loaderStatus.innerText = message;
+        }
+    }
+}
 
 // --- ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК ---
 function switchTab(tabId) {

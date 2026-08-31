@@ -3,6 +3,8 @@ import os
 import random
 import re
 import gspread
+import subprocess
+import ctypes
 from time import sleep
 from urllib.parse import quote
 from selenium import webdriver
@@ -13,9 +15,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from transliterate import translit
 import requests
-import ctypes
 import json
-import sys
 
 # Пути к файлам
 UTILS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -24,6 +24,8 @@ BASE_DIR = os.path.dirname(UTILS_DIR)
 JSON_KEY = os.path.join(UTILS_DIR, "raskatka-adressov-591861b40918.json")
 GECKO_PATH = os.path.join(UTILS_DIR, "geckodriver.exe")
 WEB_PATH = os.path.join(BASE_DIR, "web")
+VERSION_FILE = os.path.join(BASE_DIR, "version.json")
+GITHUB_VERSION_URL = "https://raw.githubusercontent.com/Miu-kontent/Raskatka/main/version.json"
 
 # Глобальные переменные для БД и браузера
 brow = None
@@ -31,28 +33,122 @@ sh = None
 worksheet_rolling = None
 worksheet_parser = None
 
+# --- ВЕРСИЯ И ОБНОВЛЕНИЕ ---
+
+def parse_version(version_str):
+    """Парсит строку версии 'X.Y.Z' в кортеж целых чисел"""
+    try:
+        parts = version_str.strip().split('.')
+        return tuple(int(p) for p in parts[:3])
+    except Exception:
+        return (0, 0, 0)
+
+def get_local_version():
+    """Читает локальную версию из version.json"""
+    try:
+        with open(VERSION_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get("version", "0.0.0")
+    except Exception:
+        return "0.0.0"
+
+def check_remote_version():
+    """Проверяет версию на GitHub. Возвращает строку версии или None"""
+    try:
+        resp = requests.get(GITHUB_VERSION_URL, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            return data.get("version")
+    except Exception:
+        pass
+    return None
+
+@eel.expose
+def update_app():
+    """Запускает обновление и перезапуск приложения"""
+    try:
+        eel.addLog("🔄 Загрузка обновления...")
+        updater_path = os.path.join(BASE_DIR, "updater.bat")
+        subprocess.Popen([updater_path], cwd=BASE_DIR, shell=False)
+        sleep(1)
+        eel.addLog("✅ Обновление запущено. Перезапуск...")
+        os._exit(0)
+    except Exception as e:
+        eel.addLog(f"❌ Ошибка обновления: {e}")
+        eel.updateStatus("Ошибка обновления")
+
 # --- ИНИЦИАЛИЗАЦИЯ И ПРОВЕРКИ ---
+
 @eel.expose
 def run_initial_checks():
     """Асинхронная проверка API и подключение к таблицам при старте UI"""
     global sh, worksheet_rolling, worksheet_parser
+
+    # --- ШАГ 1: Проверка версии ---
+    local_ver = get_local_version()
+    remote_ver = check_remote_version()
+    eel.addLog(f"📋 Локальная версия: {local_ver}")
+
+    if remote_ver and parse_version(remote_ver) > parse_version(local_ver):
+        eel.addLog(f"⚠️ Доступна новая версия: {remote_ver}")
+        eel.showNewVersionAvailable(remote_ver, local_ver)
+        return {"success": False, "new_version": remote_ver, "local_version": local_ver}
+
+    if remote_ver:
+        eel.addLog(f"✅ Версия актуальна ({local_ver})")
+    else:
+        eel.addLog("⚠️ Не удалось проверить версию на GitHub (продолжение работы)")
+
+    # --- ШАГ 2: Проверка Google API ---
+    eel.addLog("🔌 Проверка Google API...")
     try:
-        # Проверка Google API
-        requests.get("https://www.googleapis.com/discovery/v1/apis/sheets/v4/rest", timeout=10)
-        
-        # Подключение к таблицам
+        resp = requests.get("https://www.googleapis.com/discovery/v1/apis/sheets/v4/rest", timeout=10)
+        if resp.status_code != 200:
+            eel.addLog(f"❌ Google API вернул код {resp.status_code}")
+            if resp.status_code in (502, 503, 504):
+                eel.addLog("⚠️ Сервер Google временно недоступен. Рекомендуется проверить VPN и перезапустить приложение.")
+            return {"success": False, "message": f"Google API ошибка {resp.status_code}"}
+        eel.addLog("✅ Google API доступен")
+    except Exception as e:
+        eel.addLog(f"❌ Ошибка подключения к Google API: {e}")
+        eel.addLog("⚠️ Рекомендуется проверить VPN и перезапустить приложение.")
+        return {"success": False, "message": f"Ошибка API: {str(e)}"}
+
+    # --- ШАГ 3: Подключение к таблице ---
+    eel.addLog("📊 Подключение к Google Таблице 'Раскатка адрессов'...")
+    try:
         with open(JSON_KEY, "r", encoding="utf-8-sig") as f:
             credentials_data = json.load(f)
         service_account = gspread.service_account_from_dict(credentials_data)
         sh = service_account.open("Раскатка адрессов")
-        worksheet_rolling = sh.worksheet("Rolling")
-        worksheet_parser = sh.worksheet("Parser")
-        
-        return {"success": True, "message": "Базы данных успешно подключены!"}
+        eel.addLog("✅ Подключено к таблице 'Раскатка адрессов'")
     except Exception as e:
-        return {"success": False, "message": f"Ошибка: {str(e)}"}
+        eel.addLog(f"❌ Ошибка подключения к таблице: {e}")
+        eel.addLog("⚠️ Рекомендуется проверить VPN и перезапустить приложение.")
+        return {"success": False, "message": f"Ошибка таблицы: {str(e)}"}
+
+    # --- ШАГ 4: Подключение к листу Rolling ---
+    eel.addLog("📄 Подключение к листу Rolling...")
+    try:
+        worksheet_rolling = sh.worksheet("Rolling")
+        eel.addLog("✅ Подключено к листу Rolling")
+    except Exception as e:
+        eel.addLog(f"❌ Ошибка подключения к листу Rolling: {e}")
+        return {"success": False, "message": f"Ошибка Rolling: {str(e)}"}
+
+    # --- ШАГ 5: Подключение к листу Parser ---
+    eel.addLog("📄 Подключение к листу Parser...")
+    try:
+        worksheet_parser = sh.worksheet("Parser")
+        eel.addLog("✅ Подключено к листу Parser")
+    except Exception as e:
+        eel.addLog(f"❌ Ошибка подключения к листу Parser: {e}")
+        return {"success": False, "message": f"Ошибка Parser: {str(e)}"}
+
+    return {"success": True, "message": "Все системы готовы к работе!"}
 
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+
 def address_parser_form_func(res):
     original_res = res
     alternative = {
@@ -91,13 +187,13 @@ def address_parser_form_func(res):
             clean_repl = repl.strip()
             if clean_repl not in applied_shortcuts:
                 applied_shortcuts.append(clean_repl)
-                
+
     for pattern, repl in replacements.items():
         if re.search(pattern, res):
             res = re.sub(pattern, repl, res)
             before, sep, after = res.partition(repl[1:])
             res = sep + before.strip() + after
-            
+
     res = re.sub(r'\s+', ' ', res).strip()
     return res, len(applied_shortcuts)
 
@@ -172,11 +268,12 @@ REGIONAL_CAPITALS = {
 CITY_EXCEPTIONS = ("жилой район", "микрорайон", "промышленная зона", "снт", "административный округ", "исторический район", "район")
 
 # --- EEL ФУНКЦИИ ---
+
 @eel.expose
 def process_search_iteration(city, region, search_type, custom_text):
     global brow
     try:
-        _ = brow.window_handles 
+        _ = brow.window_handles
     except Exception:
         eel.updateStatus("Открытие браузера")
         service = Service(executable_path=GECKO_PATH)
@@ -215,7 +312,7 @@ def capture_map_data():
         parts = [p.strip() for p in full_address_raw.split(',') if p.strip()]
 
         street_part, shortcut_count = address_parser_form_func(parts[0])
-        has_address_warning = (shortcut_count > 1) 
+        has_address_warning = (shortcut_count > 1)
 
         city_warning = False
         type_warning = False
@@ -225,7 +322,7 @@ def capture_map_data():
             city_part_index = 0
             city_warning = True
             type_warning = True
-            address_normalized = parts[1] if len(parts) > 1 else "" 
+            address_normalized = parts[1] if len(parts) > 1 else ""
         else:
             if len(parts) > 2 and any(re.search(exc, parts[2].lower()) for exc in CITY_EXCEPTIONS):
                 city_part_index = 3
@@ -263,22 +360,15 @@ def capture_map_data():
         try:
             coords_el = brow.find_element(By.CLASS_NAME, "toponym-card-title-view__coords-badge")
             coords = coords_el.text.strip()
-        except:
+        except Exception as e:
+            print(f"⚠️ Не удалось получить координаты из блока: {e}")
             coords = ""
 
         return {
-            "city": city,
-            "city_warning": city_warning,
-            "translit_city": translit_city,
-            "typeNP": typeNP,
-            "type_warning": type_warning,
-            "region": region,
-            "address": address_normalized,
-            "address_warning": has_address_warning,
-            "full_address": full_address_raw,
-            "coords": coords,
-            "index": index,
-            "comm": "",
+            "city": city, "city_warning": city_warning, "translit_city": translit_city,
+            "typeNP": typeNP, "type_warning": type_warning, "region": region,
+            "address": address_normalized, "address_warning": has_address_warning,
+            "full_address": full_address_raw, "coords": coords, "index": index, "comm": "",
         }
     except Exception as e:
         eel.showTempStatusWithTimer(f"❌ Непредвиденная ошибка", 3)
@@ -355,7 +445,7 @@ def sbor_start_func(addresses, cities, regions):
             safe_action(lambda: find_input().send_keys(Keys.ENTER))
             try: WebDriverWait(brow, 10).until(lambda d: url_changed(d, previous_url))
             except: sleep(1)
-        
+
         if reg_city and city:
             safe_type_and_verify(reg_city)
             previous_url = brow.current_url
@@ -420,7 +510,7 @@ def sbor_start_func(addresses, cities, regions):
 
         except Exception as e:
             index_val, coords_val, translit_val, region_val = "Ошибка", "Ошибка", "Ошибка", "Ошибка"
-            error_msg = f"{i+1}: Ошибка".strip() 
+            error_msg = f"{i+1}: Ошибка".strip()
 
         eel.update_sbor_output(translit_val, coords_val, region_val, index_val, error_msg)
 
@@ -437,7 +527,7 @@ def raskatka_start_func(cities, regions, comm, base):
         base_rows += worksheet_parser.get_all_values()
 
     out_addresses, out_translits, out_regions, out_coords, out_indexes, out_errors = [], [], [], [], [], []
-    
+
     max_len = max(len(comm), len(cities), len(regions))
     cities += [""] * (max_len - len(cities))
     regions += [""] * (max_len - len(regions))
@@ -465,7 +555,7 @@ def raskatka_start_func(cities, regions, comm, base):
             if reg_one and row[3].strip().lower() != reg_one.lower(): continue
             if comm_one and row[8].strip().lower() != comm_one.lower(): continue
             good_rows.append(row)
-        
+
         if good_rows:
             chosen = random.choice(good_rows)
             out_addresses.append(chosen[4])
@@ -489,14 +579,20 @@ def raskatka_start_func(cities, regions, comm, base):
     eel.enableRaskatkaButton()()
     eel.showTempStatusWithTimer("✅ Подбор данных завершен", 3)
 
-
 if __name__ == "__main__":
     user32 = ctypes.windll.user32
     kernel32 = ctypes.windll.kernel32
     hwnd = kernel32.GetConsoleWindow()
     if hwnd:
-        user32.ShowWindow(hwnd, 0) 
+        user32.ShowWindow(hwnd, 0)
 
     eel.init(WEB_PATH)
-    # Окно запускается сразу
+
+    local_ver = get_local_version()
+    remote_ver = check_remote_version()
+    if remote_ver and parse_version(remote_ver) > parse_version(local_ver):
+        eel.addLog(f"⚠️ Доступна новая версия {remote_ver} (текущая: {local_ver})")
+    else:
+        eel.addLog(f"📋 Версия {local_ver} — актуальна")
+
     eel.start("index.html", size=(1000, 1200), port=7000)

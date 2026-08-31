@@ -15,6 +15,18 @@
         <p id="loader-status">Загрузка приложения...</p>
     </div>
 
+    <!-- Диалог обновления -->
+    <div id="version-overlay" class="hidden-element">
+        <div class="version-dialog">
+            <h2>🆕 Новая версия доступна</h2>
+            <p>Версия <strong id="new-version-text"></strong> доступна на сервере.<br>Текущая версия: <strong id="local-version-text"></strong></p>
+            <div class="version-buttons">
+                <button id="btn-update" onclick="doUpdate()">Обновить</button>
+                <button id="btn-skip" onclick="skipUpdate()">Пропустить</button>
+            </div>
+        </div>
+    </div>
+
     <header>
         <nav id="menu">
             <ul>
