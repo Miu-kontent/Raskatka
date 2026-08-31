@@ -9,13 +9,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    <!-- Окно логов запуска -->
-    <div id="startup-overlay">
-        <h2>Запуск приложения Раскатка...</h2>
-        <div id="status-badge">Проверка компонентов...</div>
-        <div id="console-logs"></div>
-        <button id="btn-start-app" onclick="closeOverlay()">Войти в приложение</button>
+    <!-- Экран загрузки и подключения БД -->
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <p id="loader-status">Загрузка приложения...</p>
     </div>
+
     <header>
         <nav id="menu">
             <ul>
@@ -234,7 +233,7 @@
         </section>
     </main>
 
-    <script src="eel.js"></script>
+    <script src="/eel.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

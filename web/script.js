@@ -1,3 +1,38 @@
+// --- ЗАГРУЗКА И ИНИЦИАЛИЗАЦИЯ ---
+document.addEventListener('DOMContentLoaded', async () => {
+    const statusEl = document.getElementById('loader-status');
+    const loaderEl = document.getElementById('loader');
+
+    try {
+        if (statusEl) statusEl.innerText = "Подключение к базам данных...";
+
+        // Запуск проверок в Python
+        const result = await eel.run_initial_checks()();
+
+        if (result.success) {
+            if (statusEl) statusEl.innerText = result.message;
+            
+            // Задержка для визуального перехода
+            setTimeout(() => {
+                if (loaderEl) loaderEl.classList.add('hidden');
+            }, 600);
+        } else {
+            if (statusEl) {
+                statusEl.innerText = `Ошибка инициализации: ${result.message}`;
+                statusEl.style.color = "#f75a68";
+            }
+        }
+    } catch (err) {
+        console.error("Ошибка при запуске:", err);
+        if (statusEl) {
+            statusEl.innerText = "Не удалось связаться с Python API";
+            statusEl.style.color = "#f75a68";
+        }
+    }
+
+    syncScroll();
+});
+
 // --- ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК ---
 function switchTab(tabId) {
     const sections = document.querySelectorAll('.tab-section');
@@ -20,7 +55,6 @@ function switchTab(tabId) {
 
     const statusBox = document.getElementById('status_box');
     if (statusBox) {
-
         const activeButtonWrapper = activeSection.querySelector('.button-wrapper');
         if (activeButtonWrapper) {
             activeButtonWrapper.appendChild(statusBox);
@@ -225,7 +259,6 @@ function updateRaskatkaResults(addresses, translits, regions, coords, indexes, e
     document.getElementById('raskatka_index').value = indexes.join('\n');
     document.getElementById('raskatka_errors').value = errors.join('\n');
 }
-/// --- /Раскатка --- ///
 
 eel.expose(update_sbor_output);
 function update_sbor_output(translit, coords, regions, index, error_msg) {
@@ -333,59 +366,7 @@ function updateStatus(message, isCountdownTick = false) {
         if (!isCountdownTick && !hasDots && !msgStr.includes("❌") && !msgStr.includes("✅")) {
             lastStableMessage = msgStr;
         }
-        
-        // Автопилот (закомментирован, но готов к работе)
-        /*
-        if (msgStr.includes("Выберите здание в")) {
-            setTimeout(() => {
-                const btnCapture = document.getElementById('search_btn_capture');
-                if (btnCapture && !btnCapture.disabled) btnCapture.click();
-                setTimeout(() => {
-                    const btnSave = document.getElementById('search_btn_save');
-                    if (btnSave && !btnSave.disabled) btnSave.click();
-                    setTimeout(() => {
-                        const btnMain = document.getElementById('search_btn_main_action');
-                        if (btnMain) btnMain.click();
-                    }, 2000);
-                }, 1000);
-            }, 3000);
-        }
-        */
     } catch (error) {
         console.error("Ошибка в updateStatus:", error);
     }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    syncScroll();
-});
-
-// --- ЛОГИКА ПРЕЛОАДЕРА И ЛОГОВ ИЗ PYTHON ---
-eel.expose(addLog);
-function addLog(message) {
-    const logBox = document.getElementById('console-logs');
-    if (logBox) {
-        const line = document.createElement('div');
-        line.textContent = message;
-        logBox.appendChild(line);
-        // Автоматическая прокрутка вниз
-        logBox.scrollTop = logBox.scrollHeight;
-    }
-}
-
-// Показываем кнопку входа после инициализации
-eel.expose(enableAppEntry);
-function enableAppEntry() {
-    const badge = document.getElementById('status-badge');
-    if (badge) {
-        badge.innerText = "Инициализация завершена";
-        badge.style.color = '#00ff66';
-    }
-    const btn = document.getElementById('btn-start-app');
-    if (btn) btn.style.display = 'inline-block';
-}
-
-function closeOverlay() {
-    const overlay = document.getElementById('startup-overlay');
-    if (overlay) overlay.style.display = 'none';
 }

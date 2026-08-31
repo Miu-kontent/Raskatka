@@ -1,4 +1,3 @@
-print("Скрипт запущен!", flush=True)
 import eel
 import os
 import random
@@ -17,13 +16,6 @@ import requests
 import ctypes
 import json
 import sys
-print("Библиотеки импортированы", flush=True)
-# --- ИНИЦИАЛИЗАЦИЯ ---
-try:
-    r = requests.get("https://www.googleapis.com/discovery/v1/apis/sheets/v4/rest", timeout=10)
-    print("✅ Google API доступен")
-except:
-    print("❌ Google API НЕ ДОСТУПЕН - попробуйте/смените/отключите VPN")
 
 # Пути к файлам
 UTILS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -33,58 +25,36 @@ JSON_KEY = os.path.join(UTILS_DIR, "raskatka-adressov-591861b40918.json")
 GECKO_PATH = os.path.join(UTILS_DIR, "geckodriver.exe")
 WEB_PATH = os.path.join(BASE_DIR, "web")
 
-# JSON_KEY = f'{os.path.join(os.getcwd(), "utils", "raskatka-adressov-591861b40918.json")}'
-# GECKO_PATH = f"{os.path.join(os.getcwd(), 'geckodriver.exe')}"
-# WEB_PATH = f"{os.path.dirname(os.getcwd())}\\web"
-
-# Подключение к Google Таблицам
-try:
-    with open(JSON_KEY, "r", encoding="utf-8-sig") as f:
-        credentials_data = json.load(f)
-    service_account = gspread.service_account_from_dict(credentials_data)
-    sh = service_account.open("Раскатка адрессов")
-    print("✅ Успешное подключение к Google Таблице Раскатка адрессов")
-    worksheet_rolling = sh.worksheet("Rolling")
-    print("✅ Успешное подключение к листу Rolling")
-    worksheet_parser = sh.worksheet("Parser")
-    print("✅ Успешное подключение к листу Parser")
-except Exception as e:
-    print(f"❌ Ошибка подключения: {e}")
-
-# --- Перехват логов консоли и отправка в интерфейс ---
-class EelLogger:
-    def __init__(self):
-        self.terminal = sys.stdout
-
-    def write(self, message):
-        if self.terminal:
-            self.terminal.write(message)
-        msg = message.strip()
-        if msg:
-            try:
-                # Отправляем лог в JS функцию addLog
-                eel.addLog(msg)()
-            except Exception:
-                pass
-
-    def flush(self):
-        if self.terminal:
-            self.terminal.flush()
-
-# Включаем перехват (теперь все print пойдут в UI)
-sys.stdout = EelLogger()
-# Перехватываем ошибки тоже
-sys.stderr = EelLogger()
-
-# Глобальная переменная браузера
+# Глобальные переменные для БД и браузера
 brow = None
+sh = None
+worksheet_rolling = None
+worksheet_parser = None
+
+# --- ИНИЦИАЛИЗАЦИЯ И ПРОВЕРКИ ---
+@eel.expose
+def run_initial_checks():
+    """Асинхронная проверка API и подключение к таблицам при старте UI"""
+    global sh, worksheet_rolling, worksheet_parser
+    try:
+        # Проверка Google API
+        requests.get("https://www.googleapis.com/discovery/v1/apis/sheets/v4/rest", timeout=10)
+        
+        # Подключение к таблицам
+        with open(JSON_KEY, "r", encoding="utf-8-sig") as f:
+            credentials_data = json.load(f)
+        service_account = gspread.service_account_from_dict(credentials_data)
+        sh = service_account.open("Раскатка адрессов")
+        worksheet_rolling = sh.worksheet("Rolling")
+        worksheet_parser = sh.worksheet("Parser")
+        
+        return {"success": True, "message": "Базы данных успешно подключены!"}
+    except Exception as e:
+        return {"success": False, "message": f"Ошибка: {str(e)}"}
 
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
-
 def address_parser_form_func(res):
-    """Нормализация адреса (сокращения и переносы)"""
     original_res = res
-    
     alternative = {
         r'\b[Уу]лица\b': 'ул.',
         r'\b[Пп]роспект\b': 'пр.',
@@ -114,9 +84,7 @@ def address_parser_form_func(res):
         r'\s?[Аа]л\.\s?': ' ал. ',
         r'\s?[Тт]ер\.\s?': ' тер. ',
     }
-    
     applied_shortcuts = []
-
     for pattern, repl in alternative.items():
         res, count = re.subn(pattern, repl, res)
         if count > 0:
@@ -131,13 +99,6 @@ def address_parser_form_func(res):
             res = sep + before.strip() + after
             
     res = re.sub(r'\s+', ' ', res).strip()
-    
-    if len(applied_shortcuts) > 1:
-        print(f"⚠️ Предупреждение: В адресе обнаружено несколько типов сокращений {applied_shortcuts}!")
-        print(f"   Оригинал: '{original_res}'")
-        print(f"   Результат: '{res}'")
-        print("-" * 50)
-        
     return res, len(applied_shortcuts)
 
 def url_changed(driver, previous_url):
@@ -152,7 +113,6 @@ def safe_action(action_func, max_retries=3, delay=0.5):
             return action_func()
         except Exception as e:
             if attempt == max_retries:
-                print(f"❌ Действие окончательно не удалось после {max_retries} попыток.")
                 raise e
             sleep(delay)
 
@@ -162,32 +122,59 @@ def safe_type_and_verify(focus_query, retries=5):
     safe_action(lambda: find_input().clear())
     safe_action(lambda: find_input().send_keys(focus_query))
     sleep(0.05)
-
     for _ in range(retries):
         stringfound = safe_action(lambda: brow.execute_script("return document.querySelector('input.input__control').value"))
-
         if stringfound == focus_query:
             return True
-
         if stringfound and focus_query.startswith(stringfound):
             missing = focus_query[len(stringfound):]
             safe_action(lambda: find_input().send_keys(missing))
         else:
             safe_action(lambda: find_input().clear())
             safe_action(lambda: find_input().send_keys(focus_query))
-            
         sleep(0.05)
-
     final_check = safe_action(lambda: brow.execute_script("return document.querySelector('input.input__control').value"))
     return final_check == focus_query
 
-# --- EEL ФУНКЦИИ ---
+# Справочник регионов
+REGIONAL_CAPITALS = {
+    "москва": "Москва", "санкт-петербург": "Санкт-Петербург", "севастополь": "Севастополь",
+    "волгоград": "Волгоградская область", "брянск": "Брянская область", "воронеж": "Воронежская область",
+    "екатеринбург": "Свердловская область", "нижний новгород": "Нижегородская область",
+    "новосибирск": "Новосибирская область", "ростов-на-дону": "Ростовская область",
+    "самара": "Самарская область", "казань": "Республика Татарстан", "уфа": "Республика Башкортостан",
+    "краснодар": "Краснодарский край", "красноярск": "Красноярский край", "владивосток": "Приморский край",
+    "пермь": "Пермский край", "челябинск": "Челябинская область", "омск": "Омская область",
+    "саратов": "Саратовская область", "тюмень": "Тюменская область", "барнаул": "Алтайский край",
+    "иркутск": "Иркутская область", "ярославль": "Ярославская область", "владимир": "Владимирская область",
+    "тула": "Тульская область", "хабаровск": "Хабаровский край", "ижевск": "Удмуртская Республика",
+    "ульяновск": "Ульяновская область", "оренбург": "Оренбургская область", "кемерово": "Кемеровская область",
+    "рязань": "Рязанская область", "астрахань": "Астраханская область", "пенза": "Пензенская область",
+    "липецк": "Липецкая область", "киров": "Кировская область", "кирово-чепецк": "Кировская область",
+    "чебоксары": "Чувашская Республика", "калининград": "Калининградская область", "курск": "Курская область",
+    "ставрополь": "Ставропольский край", "тверь": "Тверская область", "иваново": "Ивановская область",
+    "белгород": "Белгородская область", "калуга": "Калужская область", "архангельск": "Архангельская область",
+    "чита": "Забайкальский край", "смоленск": "Смоленская область", "курган": "Курганская область",
+    "вологда": "Вологодская область", "орел": "Орловская область", "орёл": "Орловская область",
+    "владикавказ": "Республика Северная Осетия — Алания", "мурманск": "Мурманская область",
+    "саранск": "Республика Мордовия", "тамбов": "Тамбовская область", "петрозаводск": "Республика Карелия",
+    "кострома": "Костромская область", "йошкар-ола": "Республика Марий Эл", "сыктывкар": "Республика Коми",
+    "нальчик": "Кабардино-Балкарская Республика", "благовещенск": "Амурская область",
+    "якутск": "Республика Саха (Якутия)", "великий новгород": "Новгородская область", "псков": "Псковская область",
+    "южно-сахалинск": "Сахалинская область", "абакан": "Республика Хакасия", "кызыл": "Республика Тыва",
+    "майкоп": "Республика Адыгея", "черкесск": "Карачаево-Черкесская Республика",
+    "теберда": "Карачаево-Черкесская Республика", "карачаевск": "Карачаево-Черкесская Республика",
+    "магадан": "Магаданская область", "ханты-мансийск": "Ханты-Мансийский автономный округ — Югра",
+    "салехард": "Ямало-Ненецкий автономный округ", "анадырь": "Чукотский автономный округ",
+    "биробиджан": "Еврейская автономная область", "симферополь": "Республика Крым"
+}
 
+CITY_EXCEPTIONS = ("жилой район", "микрорайон", "промышленная зона", "снт", "административный округ", "исторический район", "район")
+
+# --- EEL ФУНКЦИИ ---
 @eel.expose
 def process_search_iteration(city, region, search_type, custom_text):
-    """Открывает Яндекс Карты для конкретной итерации поиска"""
     global brow
-    
     try:
         _ = brow.window_handles 
     except Exception:
@@ -199,138 +186,41 @@ def process_search_iteration(city, region, search_type, custom_text):
 
     try:
         previous_url = brow.current_url
-
         focus_query = f"{city} {region}"
         safe_action(lambda: brow.execute_script("document.querySelector('input.input__control').click()"))
 
         eel.updateStatus(f"Поиск {focus_query}")
         if not safe_type_and_verify(focus_query):
-            print(f"⚠️ Не удалось корректно ввести поисковый запрос для: {focus_query}")
             eel.showTempStatusWithTimer(f"❌ Непредвиденная ошибка", 3)
         safe_action(lambda: find_input().send_keys(Keys.RETURN))
 
         if search_type != "standard":
             target_query = f"{custom_text} в {city} {region}".strip()
-
             WebDriverWait(brow, 10).until(lambda d: url_changed(d, previous_url))
-
             safe_action(lambda: find_input().send_keys(Keys.CONTROL + "a"))
             safe_action(lambda: find_input().send_keys(Keys.BACKSPACE))
-
             eel.updateStatus(f"Поиск {custom_text}")
-
             if not safe_type_and_verify(target_query):
-                print(f"⚠️ Не удалось корректно ввести поисковый запрос для: {target_query}")
                 eel.showTempStatusWithTimer(f"❌ Непредвиденная ошибка", 3)
             safe_action(lambda: find_input().send_keys(Keys.RETURN))
         eel.updateStatus(f"Выберите здание в {city}")
     except Exception as e:
-        print(f"❌ Ошибка при выполнении поиска: {e}")
         eel.showTempStatusWithTimer(f"❌ Непредвиденная ошибка", 3)
-
-# Справочник регионов для областных центров, где Яндекс скрывает регион
-REGIONAL_CAPITALS = {
-    "москва": "Москва",
-    "санкт-петербург": "Санкт-Петербург",
-    "севастополь": "Севастополь",
-    "волгоград": "Волгоградская область",
-    "брянск": "Брянская область",
-    "воронеж": "Воронежская область",
-    "екатеринбург": "Свердловская область",
-    "нижний новгород": "Нижегородская область",
-    "новосибирск": "Новосибирская область",
-    "ростов-на-дону": "Ростовская область",
-    "самара": "Самарская область",
-    "казань": "Республика Татарстан",
-    "уфа": "Республика Башкортостан",
-    "краснодар": "Краснодарский край",
-    "красноярск": "Красноярский край",
-    "владивосток": "Приморский край",
-    "пермь": "Пермский край",
-    "челябинск": "Челябинская область",
-    "омск": "Омская область",
-    "саратов": "Саратовская область",
-    "тюмень": "Тюменская область",
-    "барнаул": "Алтайский край",
-    "иркутск": "Иркутская область",
-    "ярославль": "Ярославская область",
-    "владимир": "Владимирская область",
-    "тула": "Тульская область",
-    "хабаровск": "Хабаровский край",
-    "ижевск": "Удмуртская Республика",
-    "ульяновск": "Ульяновская область",
-    "оренбург": "Оренбургская область",
-    "кемерово": "Кемеровская область",
-    "рязань": "Рязанская область",
-    "астрахань": "Астраханская область",
-    "пенза": "Пензенская область",
-    "липецк": "Липецкая область",
-    "киров": "Кировская область",
-    "кирово-чепецк": "Кировская область",
-    "чебоксары": "Чувашская Республика",
-    "калининград": "Калининградская область",
-    "курск": "Курская область",
-    "ставрополь": "Ставропольский край",
-    "тверь": "Тверская область",
-    "иваново": "Ивановская область",
-    "белгород": "Белгородская область",
-    "калуга": "Калужская область",
-    "архангельск": "Архангельская область",
-    "чита": "Забайкальский край",
-    "смоленск": "Смоленская область",
-    "курган": "Курганская область",
-    "вологда": "Вологодская область",
-    "орел": "Орловская область",
-    "орёл": "Орловская область",
-    "владикавказ": "Республика Северная Осетия — Алания",
-    "мурманск": "Мурманская область",
-    "саранск": "Республика Мордовия",
-    "тамбов": "Тамбовская область",
-    "петрозаводск": "Республика Карелия",
-    "кострома": "Костромская область",
-    "йошкар-ола": "Республика Марий Эл",
-    "сыктывкар": "Республика Коми",
-    "нальчик": "Кабардино-Балкарская Республика",
-    "благовещенск": "Амурская область",
-    "якутск": "Республика Саха (Якутия)",
-    "великий новгород": "Новгородская область",
-    "псков": "Псковская область",
-    "южно-сахалинск": "Сахалинская область",
-    "абакан": "Республика Хакасия",
-    "кызыл": "Республика Тыва",
-    "майкоп": "Республика Адыгея",
-    "черкесск": "Карачаево-Черкесская Республика",
-    "теберда": "Карачаево-Черкесская Республика",
-    "карачаевск": "Карачаево-Черкесская Республика",
-    "магадан": "Магаданская область",
-    "ханты-мансийск": "Ханты-Мансийский автономный округ — Югра",
-    "салехард": "Ямало-Ненецкий автономный округ",
-    "анадырь": "Чукотский автономный округ",
-    "биробиджан": "Еврейская автономная область",
-    "симферополь": "Республика Крым"
-}
-
-# Корпус исключений для поиска города
-CITY_EXCEPTIONS = ("жилой район", "микрорайон", "промышленная зона", "снт", "административный округ", "исторический район", "район")
 
 @eel.expose
 def capture_map_data():
-    """Извлекает данные с текущей открытой карточки объекта в Яндекс Картах"""
     try:
         address_element = brow.find_element(By.CLASS_NAME, "toponym-card-title-view__description")
         full_address_raw  = address_element.text
-
         parts = [p.strip() for p in full_address_raw.split(',') if p.strip()]
 
-        # --- ШАГ 1: Сначала проверяем улицу на наличие сокращений ---
         street_part, shortcut_count = address_parser_form_func(parts[0])
-        has_address_warning = (shortcut_count > 1) # Предупреждение, если сокращений больше одного
+        has_address_warning = (shortcut_count > 1) 
 
         city_warning = False
         type_warning = False
         city_part_index = 2
 
-        # --- ШАГ 2: Определение индекса города ---
         if shortcut_count == 0:
             city_part_index = 0
             city_warning = True
@@ -341,7 +231,6 @@ def capture_map_data():
                 city_part_index = 3
             address_normalized = f"{street_part}, {parts[1]}" if len(parts) > 1 else street_part
 
-        # --- ШАГ 3: Извлекаем город и тип НП из нужного индекса ---
         city_part = parts[city_part_index]
         type_match = re.search(r'^(пос[её]лок городского типа|рабочий пос[её]лок|город|пос[её]лок|деревня|село|станица|хутор|аул)\b\s*', city_part, re.IGNORECASE)
         if type_match:
@@ -358,7 +247,6 @@ def capture_map_data():
             index = ""
             region = parts[-1]
 
-        # --- ШАГ 4: Пытаемся найти регион ---
         region_clean = region.strip()
         if not any(marker in region_clean.lower() for marker in ["область", "край", "республика", "автономный округ"]):
             if "городской округ" in region_clean.lower():
@@ -372,12 +260,10 @@ def capture_map_data():
         translit_city = translit(str(city), 'ru', reversed=True).lower()
         translit_city = translit_city.replace(" ", "").replace("-", "").replace("'", "").replace("’", "")
 
-        # --- ШАГ 5: ПОЛУЧЕНИЕ КООРДИНАТ ИЗ БЛОКА КАРТОЧКИ ---
         try:
             coords_el = brow.find_element(By.CLASS_NAME, "toponym-card-title-view__coords-badge")
             coords = coords_el.text.strip()
-        except Exception as e:
-            print(f"⚠️ Не удалось получить координаты из блока: {e}")
+        except:
             coords = ""
 
         return {
@@ -395,13 +281,11 @@ def capture_map_data():
             "comm": "",
         }
     except Exception as e:
-        print(f"⚠️ Не удалось захватить данные: {type(e).__name__}: {e}")
         eel.showTempStatusWithTimer(f"❌ Непредвиденная ошибка", 3)
         return None
 
 @eel.expose
 def save_captured_data(data):
-    """Проверяет дубликаты и записывает новую строку в Google Таблицу """
     try:
         eel.updateStatus("Проверка данных")
         if not data['address'] or not data['city']:
@@ -409,8 +293,8 @@ def save_captured_data(data):
             return "error"
 
         existing_rows = []
-        existing_rows += worksheet_rolling.get_all_values()
-        existing_rows += worksheet_parser.get_all_values()
+        if worksheet_rolling: existing_rows += worksheet_rolling.get_all_values()
+        if worksheet_parser: existing_rows += worksheet_parser.get_all_values()
 
         for row in existing_rows:
             if len(row) >= 5:
@@ -424,30 +308,20 @@ def save_captured_data(data):
         eel.updateStatus("Сохранение данных")
 
         new_row = [
-            data['city'],
-            data['translit_city'],
-            data['typeNP'],
-            data['region'],
-            data['address'],
-            data['full_address'],
-            data['coords'],
-            data['index'],
-            data['comm']
+            data['city'], data['translit_city'], data['typeNP'], data['region'],
+            data['address'], data['full_address'], data['coords'], data['index'], data['comm']
         ]
 
-        worksheet_parser.append_row(new_row)
+        if worksheet_parser: worksheet_parser.append_row(new_row)
         eel.showTempStatusWithTimer("✅ Данные сохранены !", 3)
         return "success"
     except Exception as e:
-        print(f"❌ Ошибка при сохранении данных: {e}")
         eel.showTempStatusWithTimer(f"❌ Непредвиденная ошибка", 3)
         return "error"
 
 @eel.expose
 def sbor_start_func(addresses, cities, regions):
-    """Пакетный сбор данных (Транслит, Координаты, Индекс)"""
     global brow
-
     max_len = max(len(addresses), len(cities), len(regions))
     addresses += [""] * (max_len - len(addresses))
     cities += [""] * (max_len - len(cities))
@@ -479,33 +353,24 @@ def sbor_start_func(addresses, cities, regions):
             safe_type_and_verify(reg)
             previous_url = brow.current_url
             safe_action(lambda: find_input().send_keys(Keys.ENTER))
-            try:
-                WebDriverWait(brow, 10).until(lambda d: url_changed(d, previous_url))
-            except Exception:
-                sleep(1)
+            try: WebDriverWait(brow, 10).until(lambda d: url_changed(d, previous_url))
+            except: sleep(1)
         
         if reg_city and city:
             safe_type_and_verify(reg_city)
             previous_url = brow.current_url
             safe_action(lambda: find_input().send_keys(Keys.ENTER))
-            try:
-                WebDriverWait(brow, 10).until(lambda d: url_changed(d, previous_url))
-            except Exception:
-                sleep(1)
+            try: WebDriverWait(brow, 10).until(lambda d: url_changed(d, previous_url))
+            except: sleep(1)
 
         if full_query and addr:
             safe_type_and_verify(full_query)
             previous_url = brow.current_url
             safe_action(lambda: find_input().send_keys(Keys.ENTER))
-            try:
-                WebDriverWait(brow, 10).until(lambda d: url_changed(d, previous_url))
-            except Exception:
-                sleep(1.5)
+            try: WebDriverWait(brow, 10).until(lambda d: url_changed(d, previous_url))
+            except: sleep(1.5)
 
-        index_val = ""
-        coords_val = ""
-        translit_val = ""
-        error_msg = ""
+        index_val, coords_val, translit_val, error_msg = "", "", "", ""
 
         try:
             address_element = WebDriverWait(brow, 5).until(
@@ -528,7 +393,6 @@ def sbor_start_func(addresses, cities, regions):
             if not target_city and parts:
                 street_part, shortcut_count = address_parser_form_func(parts[0])
                 city_part_index = 2
-
                 if shortcut_count == 0:
                     city_part_index = 0
                 else:
@@ -555,11 +419,7 @@ def sbor_start_func(addresses, cities, regions):
                 translit_val = t_city.replace(" ", "").replace("-", "").replace("'", "").replace("’", "")
 
         except Exception as e:
-            print(f"Ошибка извлечения для '{full_query}': {e}")
-            index_val = "Ошибка"
-            coords_val = "Ошибка"
-            translit_val = "Ошибка"
-            region_val = "Ошибка"
+            index_val, coords_val, translit_val, region_val = "Ошибка", "Ошибка", "Ошибка", "Ошибка"
             error_msg = f"{i+1}: Ошибка".strip() 
 
         eel.update_sbor_output(translit_val, coords_val, region_val, index_val, error_msg)
@@ -569,22 +429,14 @@ def sbor_start_func(addresses, cities, regions):
 
 @eel.expose
 def raskatka_start_func(cities, regions, comm, base):
-    """Сбор с базы (Адресс, Транслит, Регион, Координаты, Индекс)"""
     eel.updateStatus("Загрузка данных из таблиц")
     base_rows = []
-    if re.search("rolling", base):
+    if re.search("rolling", base) and worksheet_rolling:
         base_rows += worksheet_rolling.get_all_values()
-    if re.search("parser", base):
+    if re.search("parser", base) and worksheet_parser:
         base_rows += worksheet_parser.get_all_values()
 
-    out_addresses = []
-    out_translits = []
-    out_regions = []
-    out_coords = []
-    out_indexes = []
-    out_errors = []
-
-    empty_row = [""] * 9
+    out_addresses, out_translits, out_regions, out_coords, out_indexes, out_errors = [], [], [], [], [], []
     
     max_len = max(len(comm), len(cities), len(regions))
     cities += [""] * (max_len - len(cities))
@@ -608,14 +460,10 @@ def raskatka_start_func(cities, regions, comm, base):
             continue
 
         good_rows = []
-
         for row in base_rows:
-            if row[0].strip().lower() != city_one.lower():
-                continue
-            if reg_one and row[3].strip().lower() != reg_one.lower():
-                continue
-            if comm_one and row[8].strip().lower() != comm_one.lower():
-                continue
+            if row[0].strip().lower() != city_one.lower(): continue
+            if reg_one and row[3].strip().lower() != reg_one.lower(): continue
+            if comm_one and row[8].strip().lower() != comm_one.lower(): continue
             good_rows.append(row)
         
         if good_rows:
@@ -633,58 +481,22 @@ def raskatka_start_func(cities, regions, comm, base):
             out_coords.append("")
             out_indexes.append("")
             error_details = f"{i+1}: {city_one}"
-            if reg_one:
-                error_details += f", {reg_one}"
-            if comm_one:
-                error_details += f" ({comm_one})"
+            if reg_one: error_details += f", {reg_one}"
+            if comm_one: error_details += f" ({comm_one})"
             out_errors.append(error_details)
 
-    eel.updateRaskatkaResults(
-        out_addresses,
-        out_translits,
-        out_regions,
-        out_coords,
-        out_indexes,
-        out_errors
-    )
-
+    eel.updateRaskatkaResults(out_addresses, out_translits, out_regions, out_coords, out_indexes, out_errors)
     eel.enableRaskatkaButton()()
     eel.showTempStatusWithTimer("✅ Подбор данных завершен", 3)
 
-# --- ЗАПУСК ---
 
 if __name__ == "__main__":
-    # Скрываем черное окно системной консоли (CMD)
-    # Используем 0 (SW_HIDE) вместо 6, чтобы полностью скрыть консоль
     user32 = ctypes.windll.user32
     kernel32 = ctypes.windll.kernel32
     hwnd = kernel32.GetConsoleWindow()
     if hwnd:
         user32.ShowWindow(hwnd, 0) 
 
-    # Инициализация Eel
     eel.init(WEB_PATH)
-    
-    # Чтобы UI успел загрузиться перед тем как мы начнем отправлять логи запуска API,
-    # мы запускаем интерфейс в неблокирующем режиме с помощью block=False
-    print("🚀 Приложение запускается...", flush=True)
-    
-    # Запускаем Eel, отдаем контроль потоку
-    eel.start("index.html", size=(1000, 1200), port=7000, block=False)
-    
-    # Даем интерфейсу полсекунды на прогрузку DOM
-    sleep(0.5) 
-    
-    print("Выполнение проверок API и баз данных...", flush=True)
-    
-    # Выводим сообщение о готовности и включаем кнопку в UI
-    print("✅ Все системы готовы к работе!", flush=True)
-    try:
-        eel.enableAppEntry()()
-    except:
-        pass
-    
-    # Оставляем процесс висеть бесконечно (замена block=True)
-    while True:
-        eel.sleep(1.0)
-    
+    # Окно запускается сразу
+    eel.start("index.html", size=(1000, 1200), port=7000)
