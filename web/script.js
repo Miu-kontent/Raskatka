@@ -63,8 +63,6 @@ function skipUpdate() {
     const loaderEl = document.getElementById('loader');
     if (loaderEl) loaderEl.classList.add('hidden');
 }
-    if (loaderEl) loaderEl.classList.add('hidden');
-}
 
 // --- ЛОГИКА ПРЕЛОАДЕРА И ЛОГОВ ---
 
