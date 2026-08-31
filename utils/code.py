@@ -288,6 +288,18 @@ def safe_type_and_verify(focus_query, retries=5):
     final_check = safe_action(lambda: brow.execute_script("return document.querySelector('input.input__control').value"))
     return final_check == focus_query
 
+def normalize_region(region: str) -> str:
+    """Нормализация названий регионов из Яндекс Карт"""
+    replacements = {
+        "Кемеровская область — Кузбасс": "Кемеровская область",
+        "Республика Северная Осетия — Алания": "Республика Северная Осетия",
+        "Республика Татарстан (Татарстан)": "Республика Татарстан",
+        "Чувашская Республика — Чувашия": "Чувашская Республика",
+        "Республика Саха (Якутия)": "Республика Саха",
+        "Ханты-Мансийский автономный округ — Югра": "Ханты-Мансийский автономный округ",
+    }
+    return replacements.get(region, region)
+
 # Справочник регионов
 REGIONAL_CAPITALS = {
     "москва": "Москва", "санкт-петербург": "Санкт-Петербург", "севастополь": "Севастополь",
@@ -400,7 +412,8 @@ def capture_map_data():
             index = ""
             region = parts[-1]
 
-        region_clean = region.strip()
+        region = normalize_region(region.strip())
+        region_clean = region
         if not any(marker in region_clean.lower() for marker in ["область", "край", "республика", "автономный округ"]):
             if "городской округ" in region_clean.lower():
                 city = re.sub(r'(?i)городской округ', '', region_clean).strip()
