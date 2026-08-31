@@ -16,6 +16,7 @@ from transliterate import translit
 import requests
 import ctypes
 import json
+import sys
 print("Библиотеки импортированы", flush=True)
 # --- ИНИЦИАЛИЗАЦИЯ ---
 try:
@@ -25,23 +26,55 @@ except:
     print("❌ Google API НЕ ДОСТУПЕН - попробуйте/смените/отключите VPN")
 
 # Пути к файлам
-JSON_KEY = f'{os.getcwd()}\\mypy-381904-f5904f83680b.json'
-GECKO_PATH = f"{os.getcwd()}\\geckodriver.exe"
-WEB_PATH = f"{os.path.dirname(os.getcwd())}\\web"
+UTILS_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(UTILS_DIR)
+
+JSON_KEY = os.path.join(UTILS_DIR, "raskatka-adressov-591861b40918.json")
+GECKO_PATH = os.path.join(UTILS_DIR, "geckodriver.exe")
+WEB_PATH = os.path.join(BASE_DIR, "web")
+
+# JSON_KEY = f'{os.path.join(os.getcwd(), "utils", "raskatka-adressov-591861b40918.json")}'
+# GECKO_PATH = f"{os.path.join(os.getcwd(), 'geckodriver.exe')}"
+# WEB_PATH = f"{os.path.dirname(os.getcwd())}\\web"
 
 # Подключение к Google Таблицам
 try:
     with open(JSON_KEY, "r", encoding="utf-8-sig") as f:
         credentials_data = json.load(f)
     service_account = gspread.service_account_from_dict(credentials_data)
-    sh = service_account.open("База")
-    print("✅ Успешное подключение к Google Таблице База")
+    sh = service_account.open("Раскатка адрессов")
+    print("✅ Успешное подключение к Google Таблице Раскатка адрессов")
     worksheet_rolling = sh.worksheet("Rolling")
     print("✅ Успешное подключение к листу Rolling")
     worksheet_parser = sh.worksheet("Parser")
     print("✅ Успешное подключение к листу Parser")
 except Exception as e:
     print(f"❌ Ошибка подключения: {e}")
+
+# --- Перехват логов консоли и отправка в интерфейс ---
+class EelLogger:
+    def __init__(self):
+        self.terminal = sys.stdout
+
+    def write(self, message):
+        if self.terminal:
+            self.terminal.write(message)
+        msg = message.strip()
+        if msg:
+            try:
+                # Отправляем лог в JS функцию addLog
+                eel.addLog(msg)()
+            except Exception:
+                pass
+
+    def flush(self):
+        if self.terminal:
+            self.terminal.flush()
+
+# Включаем перехват (теперь все print пойдут в UI)
+sys.stdout = EelLogger()
+# Перехватываем ошибки тоже
+sys.stderr = EelLogger()
 
 # Глобальная переменная браузера
 brow = None
@@ -621,8 +654,37 @@ def raskatka_start_func(cities, regions, comm, base):
 # --- ЗАПУСК ---
 
 if __name__ == "__main__":
+    # Скрываем черное окно системной консоли (CMD)
+    # Используем 0 (SW_HIDE) вместо 6, чтобы полностью скрыть консоль
+    user32 = ctypes.windll.user32
+    kernel32 = ctypes.windll.kernel32
+    hwnd = kernel32.GetConsoleWindow()
+    if hwnd:
+        user32.ShowWindow(hwnd, 0) 
+
+    # Инициализация Eel
     eel.init(WEB_PATH)
-    print("🚀 Приложение запущено. Ожидание действий пользователя...")
-    ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
-    eel.start("index.html", size=(1000, 1200), port=7000)
+    
+    # Чтобы UI успел загрузиться перед тем как мы начнем отправлять логи запуска API,
+    # мы запускаем интерфейс в неблокирующем режиме с помощью block=False
+    print("🚀 Приложение запускается...", flush=True)
+    
+    # Запускаем Eel, отдаем контроль потоку
+    eel.start("index.html", size=(1000, 1200), port=7000, block=False)
+    
+    # Даем интерфейсу полсекунды на прогрузку DOM
+    sleep(0.5) 
+    
+    print("Выполнение проверок API и баз данных...", flush=True)
+    
+    # Выводим сообщение о готовности и включаем кнопку в UI
+    print("✅ Все системы готовы к работе!", flush=True)
+    try:
+        eel.enableAppEntry()()
+    except:
+        pass
+    
+    # Оставляем процесс висеть бесконечно (замена block=True)
+    while True:
+        eel.sleep(1.0)
     

@@ -9,6 +9,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+    <!-- Окно логов запуска -->
+    <div id="startup-overlay">
+        <h2>Запуск приложения Раскатка...</h2>
+        <div id="status-badge">Проверка компонентов...</div>
+        <div id="console-logs"></div>
+        <button id="btn-start-app" onclick="closeOverlay()">Войти в приложение</button>
+    </div>
     <header>
         <nav id="menu">
             <ul>

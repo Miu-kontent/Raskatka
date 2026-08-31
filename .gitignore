@@ -1,5 +1,5 @@
 *.bat
-mypy-381904-f5904f83680b.json
+utils/raskatka-adressov-591861b40918.json
 .venv/
 venv/
 __pycache__/

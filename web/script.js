@@ -359,3 +359,33 @@ function updateStatus(message, isCountdownTick = false) {
 document.addEventListener('DOMContentLoaded', function() {
     syncScroll();
 });
+
+// --- ЛОГИКА ПРЕЛОАДЕРА И ЛОГОВ ИЗ PYTHON ---
+eel.expose(addLog);
+function addLog(message) {
+    const logBox = document.getElementById('console-logs');
+    if (logBox) {
+        const line = document.createElement('div');
+        line.textContent = message;
+        logBox.appendChild(line);
+        // Автоматическая прокрутка вниз
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+}
+
+// Показываем кнопку входа после инициализации
+eel.expose(enableAppEntry);
+function enableAppEntry() {
+    const badge = document.getElementById('status-badge');
+    if (badge) {
+        badge.innerText = "Инициализация завершена";
+        badge.style.color = '#00ff66';
+    }
+    const btn = document.getElementById('btn-start-app');
+    if (btn) btn.style.display = 'inline-block';
+}
+
+function closeOverlay() {
+    const overlay = document.getElementById('startup-overlay');
+    if (overlay) overlay.style.display = 'none';
+}
