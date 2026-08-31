@@ -118,9 +118,21 @@ def update_app():
 
 @eel.expose
 def restart_app():
-    """Чистый перезапуск приложения"""
+    """Чистый перезапуск приложения с очисткой процессов"""
+    global brow
+    
+    # 1. Запускаем новый независимый процесс приложения
     subprocess.Popen([sys.executable] + sys.argv)
-    sys.exit(0)
+    
+    # 2. Закрываем фоновый Firefox (Selenium), если он был открыт
+    if 'brow' in globals() and brow is not None:
+        try:
+            brow.quit()
+        except Exception:
+            pass
+            
+    # 3. Жестко убиваем текущий процесс Python (сервер Eel)
+    os._exit(0)
 
 # --- ИНИЦИАЛИЗАЦИЯ И ПРОВЕРКИ ---
 

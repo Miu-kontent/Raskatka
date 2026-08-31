@@ -56,16 +56,26 @@ async function doUpdate() {
     if (statusEl) statusEl.innerText = "Скачивание и установка обновления...";
     if (spinnerEl) spinnerEl.classList.remove('hidden');
 
-    // Ждем завершения распаковки от Python
     const res = await eel.update_app()();
 
     if (res && res.success) {
         if (statusEl) statusEl.innerText = "Обновление установлено! Перезапуск...";
+        
         setTimeout(() => {
+            // Отправляем команду на запуск нового процесса
             eel.restart_app()();
+            
+            // Сразу же закрываем текущее окно UI
+            setTimeout(() => { 
+                window.close(); 
+            }, 100);
+            
         }, 1200);
     } else {
-        if (statusEl) statusEl.innerText = `Ошибка обновления: ${res ? res.message : 'Неизвестная ошибка'}`;
+        if (statusEl) {
+            statusEl.innerText = `Ошибка обновления: ${res ? res.message : 'Неизвестная ошибка'}`;
+            statusEl.style.color = "#f75a68";
+        }
     }
 }
 
