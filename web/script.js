@@ -44,20 +44,25 @@ function showNewVersionAvailable(newVer, localVer) {
     const localVerText = document.getElementById('local-version-text');
     if (newVerText) newVerText.innerText = newVer;
     if (localVerText) localVerText.innerText = localVer;
-    if (overlay) overlay.classList.remove('hidden');
+    if (overlay) overlay.classList.remove('hidden-element');
 }
 
 function doUpdate() {
     const overlay = document.getElementById('version-overlay');
-    if (overlay) overlay.classList.add('hidden');
+    const statusEl = document.getElementById('loader-status');
+    const spinnerEl = document.getElementById('spinner');
+    if (overlay) overlay.classList.add('hidden-element');
+    if (statusEl) statusEl.innerText = "Скачивание обновления...";
+    if (spinnerEl) spinnerEl.classList.remove('hidden');
     eel.update_app()();
 }
 
 function skipUpdate() {
     const overlay = document.getElementById('version-overlay');
-    if (overlay) overlay.classList.add('hidden');
-    // Загружаем UI как обычно
+    if (overlay) overlay.classList.add('hidden-element');
     const loaderEl = document.getElementById('loader');
+    if (loaderEl) loaderEl.classList.add('hidden');
+}
     if (loaderEl) loaderEl.classList.add('hidden');
 }
 

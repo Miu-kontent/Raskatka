@@ -1,9 +1,15 @@
 import eel
 import os
+import sys
+import json
+import time
+import shutil
+import zipfile
+import io
 import random
 import re
 import gspread
-import subprocess
+import requests
 import ctypes
 from time import sleep
 from urllib.parse import quote
@@ -14,8 +20,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from transliterate import translit
-import requests
-import json
 
 # Пути к файлам
 UTILS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -26,6 +30,7 @@ GECKO_PATH = os.path.join(UTILS_DIR, "geckodriver.exe")
 WEB_PATH = os.path.join(BASE_DIR, "web")
 VERSION_FILE = os.path.join(BASE_DIR, "version.json")
 GITHUB_VERSION_URL = "https://raw.githubusercontent.com/Miu-kontent/Raskatka/main/version.json"
+GITHUB_ZIP_URL = "https://api.github.com/repos/Miu-kontent/Raskatka/zipball/main"
 
 # Глобальные переменные для БД и браузера
 brow = None
@@ -38,7 +43,7 @@ worksheet_parser = None
 def parse_version(version_str):
     """Парсит строку версии 'X.Y.Z' в кортеж целых чисел"""
     try:
-        parts = version_str.strip().split('.')
+        parts = str(version_str).strip().split('.')
         return tuple(int(p) for p in parts[:3])
     except Exception:
         return (0, 0, 0)
@@ -48,31 +53,65 @@ def get_local_version():
     try:
         with open(VERSION_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-        return data.get("version", "0.0.0")
+        ver = data.get("version", "0.0.0")
+        return ver.strip()
     except Exception:
         return "0.0.0"
 
 def check_remote_version():
-    """Проверяет версию на GitHub. Возвращает строку версии или None"""
+    """Проверяет версию на GitHub с cache-busting. Возвращает строку версии или None"""
     try:
-        resp = requests.get(GITHUB_VERSION_URL, timeout=10)
+        cache_buster = f"?nocache={int(time.time())}"
+        headers = {"Cache-Control": "no-cache"}
+        resp = requests.get(GITHUB_VERSION_URL + cache_buster, headers=headers, timeout=10)
         if resp.status_code == 200:
             data = resp.json()
-            return data.get("version")
+            ver = data.get("version")
+            if ver:
+                return ver.strip()
     except Exception:
         pass
     return None
 
 @eel.expose
 def update_app():
-    """Запускает обновление и перезапуск приложения"""
+    """Скачивает обновление с GitHub, распаковывает и перезапускает приложение"""
     try:
-        eel.addLog("🔄 Загрузка обновления...")
-        updater_path = os.path.join(BASE_DIR, "updater.bat")
-        subprocess.Popen([updater_path], cwd=BASE_DIR, shell=False)
+        eel.addLog("🔄 Скачивание обновления...")
+        headers = {"Cache-Control": "no-cache"}
+        cache_buster = f"?nocache={int(time.time())}"
+
+        resp = requests.get(GITHUB_ZIP_URL + cache_buster, headers=headers, timeout=60)
+        if resp.status_code != 200:
+            raise Exception(f"HTTP {resp.status_code}")
+
+        eel.addLog("📦 Распаковка обновления...")
+        with zipfile.ZipFile(io.BytesIO(resp.content)) as z:
+            root_prefix = z.namelist()[0].split('/')[0] + '/'
+            for member in z.namelist():
+                if member == root_prefix:
+                    continue
+                norm_path = member.replace("\\", "/")
+                if norm_path.startswith((".git/", ".venv")):
+                    continue
+                if "raskatka-adressov-591861b40918.json" in norm_path:
+                    continue
+
+                rel_path = member[len(root_prefix):]
+                if not rel_path:
+                    continue
+
+                target_path = os.path.join(BASE_DIR, rel_path)
+                if member.endswith('/'):
+                    os.makedirs(target_path, exist_ok=True)
+                else:
+                    os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                    with z.open(member) as source, open(target_path, "wb") as target:
+                        shutil.copyfileobj(source, target)
+
+        eel.addLog("✅ Обновление установлено! Перезапуск...")
         sleep(1)
-        eel.addLog("✅ Обновление запущено. Перезапуск...")
-        os._exit(0)
+        os.execl(sys.executable, sys.executable, *sys.argv)
     except Exception as e:
         eel.addLog(f"❌ Ошибка обновления: {e}")
         eel.updateStatus("Ошибка обновления")
@@ -91,7 +130,6 @@ def run_initial_checks():
 
     if remote_ver and parse_version(remote_ver) > parse_version(local_ver):
         eel.addLog(f"⚠️ Доступна новая версия: {remote_ver}")
-        eel.showNewVersionAvailable(remote_ver, local_ver)
         return {"success": False, "new_version": remote_ver, "local_version": local_ver}
 
     if remote_ver:
