@@ -1,28 +1,186 @@
+:root {
+  --bg-body: #0d1b2a;
+  --bg-card: #1b263b;
+  --bg-input: #0d1b2a;
+  --text-main: #f5f6fa;
+  --text-muted: #8d99ae;
+  --accent: #dfb15b;
+  --accent-hover: #f1c40f;
+  --border-color: rgba(223, 177, 91, 0.25);
+  --btn-bg: #dfb15b;
+  --btn-text: #0d1b2a;
+  --btn-hover: #f1c40f;
+  --btn-disabled-bg: #4a4a4a;
+  --btn-disabled-text: #888;
+  --header-bg: #1b263b;
+  --tab-bg: #dfb15b;
+  --tab-text: #0d1b2a;
+  --tab-hover: #f1c40f;
+  --tab-active-bg: #b8924a;
+  --input-border: rgba(223, 177, 91, 0.4);
+  --input-focus-border: #dfb15b;
+  --input-focus-shadow: rgba(223, 177, 91, 0.3);
+  --error-bg: #3a1a1a;
+  --error-border: #8b2a2a;
+  --error-text: #f5c6cb;
+  --warning-bg: #3a331a;
+  --warning-border: #b8962e;
+  --warning-text: #ffeeba;
+  --status-bg: #1b263b;
+  --status-border: rgba(223, 177, 91, 0.25);
+  --status-text: #f5f6fa;
+  --status-error-border: #8b2a2a;
+  --status-error-text: #f5c6cb;
+  --status-success-border: #2e7d32;
+  --status-success-text: #a5d6a7;
+  --table-header-bg: #1b263b;
+  --table-header-border: rgba(223, 177, 91, 0.25);
+  --table-row-even: #162033;
+  --table-row-hover: #2a3a52;
+  --table-footer-bg: #1b263b;
+  --table-footer-border: rgba(223, 177, 91, 0.25);
+  --copy-btn-bg: rgba(223, 177, 91, 0.15);
+  --copy-btn-text: #dfb15b;
+  --copy-btn-border: rgba(223, 177, 91, 0.3);
+  --copy-btn-hover-bg: rgba(223, 177, 91, 0.3);
+  --copy-btn-hover-border: rgba(223, 177, 91, 0.5);
+  --copy-btn-copied-bg: #dfb15b;
+  --copy-btn-copied-text: #0d1b2a;
+  --copy-btn-copied-border: #dfb15b;
+  --loader-bg: #0d1b2a;
+  --loader-text: #8d99ae;
+  --spinner-border: #1b263b;
+  --spinner-top: #dfb15b;
+  --log-bg: rgba(0, 0, 0, 0.2);
+  --log-text: #8d99ae;
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --dialog-bg: #1b263b;
+  --dialog-border: rgba(223, 177, 91, 0.25);
+  --dialog-text: #f5f6fa;
+  --dialog-title: #dfb15b;
+  --dialog-desc: #8d99ae;
+  --dialog-btn-update-bg: #dfb15b;
+  --dialog-btn-update-text: #0d1b2a;
+  --dialog-btn-update-hover: #f1c40f;
+  --dialog-btn-skip-bg: #3a3a3a;
+  --dialog-btn-skip-text: #f5f6fa;
+  --dialog-btn-skip-hover: #4a4a4a;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(223, 177, 91, 0.3);
+  --scrollbar-thumb-hover: rgba(223, 177, 91, 0.5);
+}
+
+body.light-theme {
+  --bg-body: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --text-main: #333333;
+  --text-muted: #555555;
+  --accent: #4CAF50;
+  --accent-hover: #45a049;
+  --border-color: #cccccc;
+  --btn-bg: #4CAF50;
+  --btn-text: #ffffff;
+  --btn-hover: #45a049;
+  --btn-disabled-bg: #cccccc;
+  --btn-disabled-text: #888888;
+  --header-bg: #ffffff;
+  --tab-bg: #4CAF50;
+  --tab-text: #ffffff;
+  --tab-hover: #45a049;
+  --tab-active-bg: #388e3c;
+  --input-border: #cccccc;
+  --input-focus-border: #4CAF50;
+  --input-focus-shadow: rgba(76, 175, 80, 0.3);
+  --error-bg: #fff9f9;
+  --error-border: #97111f;
+  --error-text: #333333;
+  --warning-bg: #fff3cd;
+  --warning-border: #ffe69c;
+  --warning-text: #664d03;
+  --status-bg: #f0f0f0;
+  --status-border: #cccccc;
+  --status-text: #333333;
+  --status-error-border: #97111f;
+  --status-error-text: #97111f;
+  --status-success-border: #4CAF50;
+  --status-success-text: #2e7d32;
+  --table-header-bg: #f5f5f5;
+  --table-header-border: #e0e0e0;
+  --table-row-even: #fafafa;
+  --table-row-hover: #e8f5e9;
+  --table-footer-bg: #f5f5f5;
+  --table-footer-border: #e0e0e0;
+  --copy-btn-bg: #e8f5e9;
+  --copy-btn-text: #2e7d32;
+  --copy-btn-border: #c8e6c9;
+  --copy-btn-hover-bg: #c8e6c9;
+  --copy-btn-hover-border: #a5d6a7;
+  --copy-btn-copied-bg: #4CAF50;
+  --copy-btn-copied-text: #ffffff;
+  --copy-btn-copied-border: #4CAF50;
+  --loader-bg: #121214;
+  --loader-text: #a8a8b3;
+  --spinner-border: #29292e;
+  --spinner-top: #00b37e;
+  --log-bg: rgba(0, 0, 0, 0.2);
+  --log-text: #a8a8b3;
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --dialog-bg: #1e1e24;
+  --dialog-border: #444444;
+  --dialog-text: #ffffff;
+  --dialog-title: #00b37e;
+  --dialog-desc: #a8a8b3;
+  --dialog-btn-update-bg: #00b37e;
+  --dialog-btn-update-text: #121214;
+  --dialog-btn-update-hover: #00996a;
+  --dialog-btn-skip-bg: #444444;
+  --dialog-btn-skip-text: #ffffff;
+  --dialog-btn-skip-hover: #555555;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #cccccc;
+  --scrollbar-thumb-hover: #999999;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Roboto', sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f5f5f5; 
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Меню навигации */
+header {
+  background-color: var(--header-bg);
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
 #menu {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  animation: slideInFromTop 0.5s ease-out; 
+  justify-content: space-between;
+  align-items: center;
+  animation: slideInFromTop 0.5s ease-out;
   padding: 0;
   margin: 10px;
 }
+
 #menu ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
   display: flex;
 }
+
 .me {
-  background-color: #4CAF50;
-  color: white;
+  background-color: var(--tab-bg);
+  color: var(--tab-text);
   padding: 10px 20px;
   text-align: center;
   text-decoration: none;
@@ -30,55 +188,78 @@ body {
   margin: 5px;
   cursor: pointer;
   border-radius: 5px;
-  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; 
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 .me:hover {
-  background-color: #45a049;
-  transform: scale(1.05); 
+  background-color: var(--tab-hover);
+  transform: scale(1.05);
 }
-/* Активная вкладка в меню */
+
 .me.active {
-  background-color: #388e3c;
+  background-color: var(--tab-active-bg);
   box-shadow: inset 0 3px 5px rgba(0,0,0,0.2);
   transform: scale(1);
   cursor: default;
 }
 
-/* Заголовки */
+.theme-toggle {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  margin-left: 10px;
+}
+
+.theme-toggle:hover {
+  background-color: var(--btn-hover);
+  transform: scale(1.05);
+}
+
 h1 {
   text-align: center;
   margin: 10px;
-  color: #333;
-  animation: fadeIn 0.5s ease-out; 
+  color: var(--text-main);
+  animation: fadeIn 0.5s ease-out;
 }
 
-/* Базовые стили форм */
 form {
-  background-color: white;
+  background-color: var(--bg-card);
   padding: 15px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   margin: 20px 2.5%;
   max-width: 95%;
-  animation: slideInFromBottom 0.5s ease-out; 
+  animation: slideInFromBottom 0.5s ease-out;
+  border: 1px solid var(--border-color);
 }
+
 input, textarea, select {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
   box-sizing: border-box;
   font-family: 'Roboto', sans-serif;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
 }
+
 input:focus, textarea:focus, select:focus {
-  border-color: #4CAF50;
-  box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 5px var(--input-focus-shadow);
   outline: none;
 }
+
 button {
-  background-color: #4CAF50;
-  color: white;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
   padding: 10px 20px;
   border: none;
   border-radius: 4px;
@@ -86,53 +267,60 @@ button {
   font-weight: 500;
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
+
 button:hover:not(:disabled) {
-  background-color: #45a049;
-  transform: scale(1.05); 
+  background-color: var(--btn-hover);
+  transform: scale(1.05);
 }
+
 button:disabled {
-  background-color: #cccccc;
+  background-color: var(--btn-disabled-bg);
+  color: var(--btn-disabled-text);
   cursor: not-allowed;
   transform: none;
 }
 
-label { 
-  margin-bottom: 10px; 
+label {
+  margin-bottom: 10px;
   display: block;
+  color: var(--text-main);
 }
 
 .hidden-element { display: none; }
 
-/* Сетка интерфейса */
 .output-wrapper {
   display: flex;
   gap: 20px;
-  align-items: stretch; 
+  align-items: stretch;
 }
+
 .output {
   display: flex;
   flex-direction: column;
-  flex: 1; 
+  flex: 1;
 }
+
 .output-bottom { flex: 2; }
 
-/* Кастомные элементы форм */
 .search-options { margin-top: 15px; }
+
 .textarea-tall { height: 220px; resize: vertical; }
-.textarea-skipped { 
+
+.textarea-skipped {
   flex: 1;
   min-height: 200px;
-  border: 1px solid #97111f; 
-  background-color: #fff9f9;
+  border: 1px solid var(--error-border);
+  background-color: var(--error-bg);
+  color: var(--error-text);
   resize: vertical;
 }
 
-/* Сетка редактирования (Grid) */
 .editor-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
+
 .editor-grid-sbor {
   display: grid;
   grid-template-columns: 3fr 1fr;
@@ -140,59 +328,61 @@ label {
   margin: 0px 2.5%;
   gap: 20px;
 }
+
 .editor-grid-sbor form {
   display: flex;
   flex-direction: column;
   margin: 20px 0px;
   max-width: 100%;
 }
+
 .col-span-2 { grid-column: span 2; }
-.editor-label { 
-  font-size: 14px; 
-  color: #555; 
-  display: block; 
+
+.editor-label {
+  font-size: 14px;
+  color: var(--text-muted);
+  display: block;
   margin-bottom: 4px;
 }
+
 .editor-input { margin-top: 0; }
 
-/* Подсветка ошибок */
 .warning-input {
-  background-color: #fff3cd; 
-  border-color: #ffe69c;
-  color: #664d03;
+  background-color: var(--warning-bg);
+  border-color: var(--warning-border);
+  color: var(--warning-text);
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Нижняя панель (Кнопки и Статус) */
 .button-wrapper {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 15px; 
+  margin-top: 15px;
   gap: 15px;
 }
+
 .side-buttons {
   display: flex;
-  gap: 10px; 
+  gap: 10px;
 }
 
-/* Блок статуса и анимация загрузки */
 #status_box {
   padding: 0 15px;
-  background-color: #f0f0f0;
-  border: 2px solid #ccc;
+  background-color: var(--status-bg);
+  border: 2px solid var(--status-border);
   border-radius: 20px;
   font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #333;
+  color: var(--status-text);
   height: 40px;
   flex: 1;
   box-sizing: border-box;
   white-space: nowrap;
   font-weight: 500;
-  transition: color 0.3s ease, border-color 0.3s ease;
+  transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .loading-dots::after {
@@ -206,70 +396,78 @@ label {
   line-height: 1;
 }
 
-/* Анимации */
 @keyframes dots {
   0% { content: ' '; }
   25% { content: ' •'; }
   50% { content: ' • •'; }
   75% { content: ' • • •'; }
 }
+
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; } 
-}
-@keyframes slideInFromTop {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; } 
-}
-@keyframes slideInFromBottom {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; } 
-}
-@keyframes scaleIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; } 
+  to { opacity: 1; }
 }
 
-/* --- Стили для версийного диалога --- */
+@keyframes slideInFromTop {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInFromBottom {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 #version-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 10000;
 }
+
 #version-overlay.hidden {
   display: none;
 }
+
 .version-dialog {
-  background: #1e1e24;
-  border: 1px solid #444;
+  background: var(--dialog-bg);
+  border: 1px solid var(--dialog-border);
   border-radius: 12px;
   padding: 30px 40px;
   max-width: 420px;
   width: 90%;
   text-align: center;
-  color: #fff;
+  color: var(--dialog-text);
   animation: scaleIn 0.3s ease-out;
 }
+
 .version-dialog h2 {
   margin-top: 0;
   font-size: 22px;
-  color: #00b37e;
+  color: var(--dialog-title);
 }
+
 .version-dialog p {
   font-size: 15px;
-  color: #a8a8b3;
+  color: var(--dialog-desc);
   line-height: 1.6;
   margin-bottom: 25px;
 }
+
 .version-buttons {
   display: flex;
   gap: 15px;
   justify-content: center;
 }
+
 .version-buttons button {
   padding: 12px 30px;
   font-size: 15px;
@@ -279,204 +477,215 @@ label {
   font-weight: 500;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
+
 #btn-update {
-  background-color: #00b37e;
-  color: #121214;
+  background-color: var(--dialog-btn-update-bg);
+  color: var(--dialog-btn-update-text);
 }
+
 #btn-update:hover {
-  background-color: #00996a;
-  transform: scale(1.05);
-}
-#btn-skip {
-  background-color: #444;
-  color: #fff;
-}
-#btn-skip:hover {
-  background-color: #555;
+  background-color: var(--dialog-btn-update-hover);
   transform: scale(1.05);
 }
 
-/* --- Стили для Splash Screen (Прелоадера) --- */
+#btn-skip {
+  background-color: var(--dialog-btn-skip-bg);
+  color: var(--dialog-btn-skip-text);
+}
+
+#btn-skip:hover {
+  background-color: var(--dialog-btn-skip-hover);
+  transform: scale(1.05);
+}
+
 .loader-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: #121214;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    transition: opacity 0.4s ease, visibility 0.4s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--loader-bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
 }
 
 .loader-overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
+  opacity: 0;
+  visibility: hidden;
 }
 
 .loader-overlay p {
-    font-size: 14px;
-    color: #a8a8b3;
-    margin-top: 12px;
+  font-size: 14px;
+  color: var(--loader-text);
+  margin-top: 12px;
 }
 
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid #29292e;
-    border-top: 3px solid #00b37e;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--spinner-border);
+  border-top: 3px solid var(--spinner-top);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .logs-container {
-    margin-top: 15px;
-    max-height: 150px;
-    width: 80%;
-    max-width: 500px;
-    overflow-y: auto;
-    font-size: 13px;
-    color: #a8a8b3;
-    text-align: left;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-family: monospace;
+  margin-top: 15px;
+  max-height: 150px;
+  width: 80%;
+  max-width: 500px;
+  overflow-y: auto;
+  font-size: 13px;
+  color: var(--log-text);
+  text-align: left;
+  background: var(--log-bg);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: monospace;
 }
 
 .logs-container div {
-    margin-bottom: 4px;
-    word-break: break-all;
+  margin-bottom: 4px;
+  word-break: break-all;
 }
 
-/* --- Таблица результатов Раскатки --- */
 .table-container {
-    overflow-x: auto;
-    overflow-y: auto;
-    max-height: 340px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: white;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 340px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-card);
 }
 
 .results-table {
-    width: 100%;
-    min-width: 800px;
-    border-collapse: collapse;
-    table-layout: fixed;
-    font-size: 13px;
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
 }
 
-/* Ширина колонок через colgroup */
-.results-table .col-main {
-    width: auto;
-}
-.results-table .col-coords {
-    width: 18%;
-}
-.results-table .col-index {
-    width: 12%;
-}
+.results-table .col-main { width: auto; }
+.results-table .col-coords { width: 18%; }
+.results-table .col-index { width: 12%; }
 
 .results-table th,
 .results-table td {
-    padding: 8px 12px;
-    border: 1px solid #e0e0e0;
-    text-align: left;
-    vertical-align: top;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
 }
 
 .results-table th {
-    background-color: #f5f5f5;
-    font-weight: 500;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    border: none;
-    box-shadow: inset 0 -1px 0 #e0e0e0, inset 0 1px 0 #e0e0e0, inset -1px 0 0 #e0e0e0, inset 1px 0 0 #e0e0e0;
+  background-color: var(--table-header-bg);
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border: none;
+  box-shadow: inset 0 -1px 0 var(--table-header-border), inset 0 1px 0 var(--table-header-border), inset -1px 0 0 var(--table-header-border), inset 1px 0 0 var(--table-header-border);
 }
 
 .results-table tbody tr:nth-child(even) {
-    background-color: #fafafa;
+  background-color: var(--table-row-even);
 }
 
 .results-table tbody tr:hover {
-    background-color: #e8f5e9;
+  background-color: var(--table-row-hover);
 }
 
-/* Липкий подвал (tfoot) */
 .results-table tfoot td {
-    position: sticky;
-    bottom: 0;
-    background-color: #f5f5f5;
-    z-index: 2;
-    border: none;
-    box-shadow: inset 0 1px 0 #e0e0e0, inset -1px 0 0 #e0e0e0, inset 1px 0 0 #e0e0e0;
-    padding: 6px 12px;
+  position: sticky;
+  bottom: 0;
+  background-color: var(--table-footer-bg);
+  z-index: 2;
+  border: none;
+  box-shadow: inset 0 1px 0 var(--table-footer-border), inset -1px 0 0 var(--table-footer-border), inset 1px 0 0 var(--table-footer-border);
+  padding: 6px 12px;
 }
 
-/* Кнопки копирования в ячейках tfoot */
 .results-table tfoot .copy-col-btn {
-    width: 100%;
-    box-sizing: border-box;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Кнопки копирования столбцов */
 .copy-col-btn {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border: 1px solid #c8e6c9;
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
+  background-color: var(--copy-btn-bg);
+  color: var(--copy-btn-text);
+  border: 1px solid var(--copy-btn-border);
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .copy-col-btn:hover:not(:disabled) {
-    background-color: #c8e6c9;
-    border-color: #a5d6a7;
-    transform: none;
+  background-color: var(--copy-btn-hover-bg);
+  border-color: var(--copy-btn-hover-border);
+  transform: none;
 }
 
 .copy-col-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .copy-col-btn.copied {
-    background-color: #4CAF50;
-    color: white;
-    border-color: #4CAF50;
+  background-color: var(--copy-btn-copied-bg);
+  color: var(--copy-btn-copied-text);
+  border-color: var(--copy-btn-copied-border);
 }
 
-/* Кнопка "Скопировать всю таблицу" */
 #raskatka_copy_all {
-    background-color: #2196F3;
-    color: white;
-    height: 40px;
-    line-height: 20px;
-    padding: 10px 20px;
-    box-sizing: border-box;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  height: 40px;
+  line-height: 20px;
+  padding: 10px 20px;
+  box-sizing: border-box;
 }
 
 #raskatka_copy_all:hover:not(:disabled) {
-    background-color: #1976D2;
+  background-color: var(--btn-hover);
 }
 
 #raskatka_copy_all.copied {
-    background-color: #4CAF50;
+  background-color: var(--copy-btn-copied-bg);
+  color: var(--copy-btn-copied-text);
+  border-color: var(--copy-btn-copied-border);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }

@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statusEl = document.getElementById('loader-status');
     const loaderEl = document.getElementById('loader');
 
+    // Применяем сохраненную тему
+    applySavedTheme();
+
     try {
         if (statusEl) statusEl.innerText = "Подключение к базам данных...";
 
@@ -42,6 +45,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 });
+
+function applySavedTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        if (themeBtn) {
+            themeBtn.innerText = '☀️ Светлая';
+            themeBtn.title = 'Сменить на темную тему';
+        }
+    } else {
+        document.body.classList.remove('light-theme');
+        if (themeBtn) {
+            themeBtn.innerText = '🌙 Темная';
+            themeBtn.title = 'Сменить на светлую тему';
+        }
+    }
+}
+
+function toggleTheme() {
+    const body = document.body;
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    const isLight = body.classList.toggle('light-theme');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    
+    if (themeBtn) {
+        themeBtn.innerText = isLight ? '☀️ Светлая' : '🌙 Темная';
+        themeBtn.title = isLight ? 'Сменить на темную тему' : 'Сменить на светлую тему';
+    }
+}
 
 let raskatkaTableData = [];
 
@@ -520,14 +553,14 @@ function updateStatus(message, isCountdownTick = false) {
         statusBox.innerText = msgStr;
         
         if (msgStr.includes("❌")) {
-            statusBox.style.borderColor = "darkred";
-            statusBox.style.color = "red";
+            statusBox.style.borderColor = "var(--status-error-border)";
+            statusBox.style.color = "var(--status-error-text)";
         } else if (msgStr.includes("✅")) {
-            statusBox.style.borderColor = "green";
-            statusBox.style.color = "green";
+            statusBox.style.borderColor = "var(--status-success-border)";
+            statusBox.style.color = "var(--status-success-text)";
         } else {
-            statusBox.style.borderColor = "#ccc";
-            statusBox.style.color = "#333";
+            statusBox.style.borderColor = "var(--status-border)";
+            statusBox.style.color = "var(--status-text)";
         }
 
         let hasDots = false;
