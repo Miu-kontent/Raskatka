@@ -257,13 +257,21 @@ async function captureCurrentData() {
         outCity.value = data.city || "";
         const outTranslit = document.getElementById('search_out_translit');
         outTranslit.value = data.translit_city || "";
-        
-        if (data.city_warning) {
+        const outRegion = document.getElementById('search_out_region');
+        outRegion.value = data.region || "";
+
+        if (data.city_warning || data.region_warning) {
             outCity.classList.add('warning-input');
             outTranslit.classList.add('warning-input');
         } else {
             outCity.classList.remove('warning-input');
             outTranslit.classList.remove('warning-input');
+        }
+
+        if (data.region_warning) {
+            outRegion.classList.add('warning-input');
+        } else {
+            outRegion.classList.remove('warning-input');
         }
 
         const outType = document.getElementById('search_out_type');
@@ -274,7 +282,6 @@ async function captureCurrentData() {
             outType.classList.remove('warning-input');
         }
 
-        document.getElementById('search_out_region').value = data.region || "";
         document.getElementById('search_out_full_address').value = data.full_address || "";
         document.getElementById('search_out_coords').value = data.coords || "";
         document.getElementById('search_out_index').value = data.index || "";
@@ -317,6 +324,7 @@ function clearOutputFields() {
     if(document.getElementById('search_out_translit')) document.getElementById('search_out_translit').classList.remove('warning-input');
     if(document.getElementById('search_out_address')) document.getElementById('search_out_address').classList.remove('warning-input');
     if(document.getElementById('search_out_type')) document.getElementById('search_out_type').classList.remove('warning-input');
+    if(document.getElementById('search_out_region')) document.getElementById('search_out_region').classList.remove('warning-input');
 }
 
 function clearAllFields() {

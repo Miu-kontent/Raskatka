@@ -297,6 +297,7 @@ def normalize_region(region: str) -> str:
         "Чувашская Республика — Чувашия": "Чувашская Республика",
         "Республика Саха (Якутия)": "Республика Саха",
         "Ханты-Мансийский автономный округ — Югра": "Ханты-Мансийский автономный округ",
+        "Республика Адыгея (Адыгея)": "Республика Адыгея",
     }
     return replacements.get(region, region)
 
@@ -332,6 +333,43 @@ REGIONAL_CAPITALS = {
     "салехард": "Ямало-Ненецкий автономный округ", "анадырь": "Чукотский автономный округ",
     "биробиджан": "Еврейская автономная область", "симферополь": "Республика Крым"
 }
+
+# Словарь «район/городской округ/муниципальный округ → регион»: Яндекс не всегда указывает
+# регион в адресе, оставляя только административное деление. Ключ — полная строка в нижнем регистре.
+# Пополняется по мере обнаружения новых случаев.
+DISTRICT_REGIONS = {
+    "запорожский район": "Запорожская область",
+    "городской округ стаханов": "Луганская Народная Республика",
+    "городской округ красный луч": "Луганская Народная Республика",
+    "муниципальный округ перевальский": "Луганская Народная Республика",
+    "городской округ лисичанск": "Луганская Народная Республика",
+    "славяносербский муниципальный округ": "Луганская Народная Республика",
+    "добропольская городская община": "Донецкая Народная Республика",
+    "торецкая городская община": "Донецкая Народная Республика",
+    "городской округ харцызск": "Донецкая Народная Республика",
+    "городской округ донецк": "Донецкая Народная Республика",
+    "покровская городская община": "Донецкая Народная Республика",
+    "краматорский район": "Донецкая Народная Республика",
+    "муниципальный округ артемовский": "Донецкая Народная Республика",
+    "селидовская городская община": "Донецкая Народная Республика",
+    "городской округ енакиево": "Донецкая Народная Республика"
+}
+
+# Диапазоны почтовых индексов → регион: последний fallback, когда регион не удалось
+# определить ни по адресу, ни по словарям. Границы включительные.
+INDEX_REGION_RANGES = [
+    (283000, 287999, "Донецкая Народная Республика"),
+    (291000, 294999, "Луганская Народная Республика"),
+]
+
+def region_by_index(index: str) -> str:
+    if not index or not re.fullmatch(r"\d{6}", index):
+        return ""
+    val = int(index)
+    for start, end, reg in INDEX_REGION_RANGES:
+        if start <= val <= end:
+            return reg
+    return ""
 
 CITY_EXCEPTIONS = ("жилой район", "микрорайон", "промышленная зона", "снт", "административный округ", "исторический район", "район")
 
@@ -414,14 +452,23 @@ def capture_map_data():
 
         region = normalize_region(region.strip())
         region_clean = region
+        region_warning = False
+        region_resolved = True
         if not any(marker in region_clean.lower() for marker in ["область", "край", "республика", "автономный округ"]):
-            if "городской округ" in region_clean.lower():
-                city = re.sub(r'(?i)городской округ', '', region_clean).strip()
+            region_resolved = False
+            if any(d in region_clean.lower() for d in ("район", "городской округ", "муниципальный округ", "городская община")):
+                if region_clean.lower() in DISTRICT_REGIONS:
+                    region = DISTRICT_REGIONS[region_clean.lower()]
+                    region_resolved = True
             else:
                 city = region_clean
-            typeNP = "город"
-            if city.lower() in REGIONAL_CAPITALS:
-                region = REGIONAL_CAPITALS[city.lower()]
+                typeNP = "город"
+                if city.lower() in REGIONAL_CAPITALS:
+                    region = REGIONAL_CAPITALS[city.lower()]
+                    region_resolved = True
+            if not region_resolved:
+                region = region_by_index(index)
+                region_warning = not region
 
         translit_city = translit(str(city), 'ru', reversed=True).lower()
         translit_city = translit_city.replace(" ", "").replace("-", "").replace("'", "").replace("’", "")
@@ -436,6 +483,7 @@ def capture_map_data():
         return {
             "city": city, "city_warning": city_warning, "translit_city": translit_city,
             "typeNP": typeNP, "type_warning": type_warning, "region": region,
+            "region_warning": region_warning,
             "address": address_normalized, "address_warning": has_address_warning,
             "full_address": full_address_raw, "coords": coords, "index": index, "comm": "",
         }
@@ -570,8 +618,20 @@ def sbor_start_func(addresses, cities, regions):
                     target_city = city_part
 
             region_clean = region_val.strip()
-            if not any(marker in region_clean.lower() for marker in ["область", "край", "республика", "автономный округ"]) and target_city.lower() in REGIONAL_CAPITALS:
-                region_val = REGIONAL_CAPITALS[city.lower()]
+            region_resolved = True
+            if not any(marker in region_clean.lower() for marker in ["область", "край", "республика", "автономный округ"]):
+                region_resolved = False
+                if any(d in region_clean.lower() for d in ("район", "городской округ", "муниципальный округ", "городская община")):
+                    if region_clean.lower() in DISTRICT_REGIONS:
+                        region_val = DISTRICT_REGIONS[region_clean.lower()]
+                        region_resolved = True
+                elif target_city.lower() in REGIONAL_CAPITALS:
+                    region_val = REGIONAL_CAPITALS[target_city.lower()]
+                    region_resolved = True
+                if not region_resolved:
+                    region_val = region_by_index(index_val)
+                    if not region_val and not error_msg:
+                        error_msg = f"{i+1}: Регион"
 
             if target_city:
                 t_city = translit(str(target_city), 'ru', reversed=True).lower()
