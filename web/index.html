@@ -154,27 +154,45 @@
 
             <form onsubmit="return false;">
                 <div class="output-wrapper">
-                    <div class="output">
-                        <label for="sbor_translit">Транслит:</label>
-                        <textarea id="sbor_translit" class="textarea-tall sync-scroll"></textarea>
-                    </div>
-                    <div class="output">
-                        <label for="sbor_coords">Координаты:</label>
-                        <textarea id="sbor_coords" class="textarea-tall sync-scroll" ></textarea>
-                    </div>
-                    <div class="output">
-                        <label for="sbor_out_regions">Регион:</label>
-                        <textarea id="sbor_out_regions" class="textarea-tall sync-scroll"></textarea>
-                    </div>
-                    <div class="output">
-                        <label for="sbor_index">Индекс:</label>
-                        <textarea id="sbor_index" class="textarea-tall sync-scroll"></textarea>
+                    <div class="output" style="flex: 1; min-width: 0;">
+                        <label>Результаты сбора:</label>
+                        <div class="table-container">
+                            <table id="sbor-results-table" class="results-table">
+                                <colgroup>
+                                    <col class="col-main">
+                                    <col class="col-main">
+                                    <col class="col-main">
+                                    <col class="col-coords">
+                                    <col class="col-index">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>Город</th>
+                                        <th>Транслит</th>
+                                        <th>Регион</th>
+                                        <th>Координаты</th>
+                                        <th>Индекс</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sbor-results-body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td><button type="button" class="copy-col-btn" data-col="0" title="Копировать города">Город</button></td>
+                                        <td><button type="button" class="copy-col-btn" data-col="1" title="Копировать транслит">Транслит</button></td>
+                                        <td><button type="button" class="copy-col-btn" data-col="2" title="Копировать регион">Регион</button></td>
+                                        <td><button type="button" class="copy-col-btn" data-col="3" title="Копировать координаты">Координаты</button></td>
+                                        <td><button type="button" class="copy-col-btn" data-col="4" title="Копировать индекс">Индекс</button></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <div class="button-wrapper">
                     <div class="side-buttons">
                         <button type="button" id="sbor_btn_start" onclick="btnSborStart()">Начать</button>
+                        <button type="button" id="sbor_copy_all" onclick="copyAllSborTable()">Скопировать всю таблицу</button>
                     </div>
                 </div>
             </form>
@@ -263,6 +281,6 @@
     </main>
 
     <script src="/eel.js"></script>
-    <script src="script.js?v=4"></script>
+    <script src="script.js?v=5"></script>
 </body>
 </html>

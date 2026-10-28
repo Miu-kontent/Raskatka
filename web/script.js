@@ -38,10 +38,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     syncScroll();
 
-    document.querySelectorAll('.copy-col-btn').forEach(btn => {
+    document.querySelectorAll('#raskatka-results-table .copy-col-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const col = parseInt(btn.dataset.col, 10);
             copyColumnRaskatka(col);
+        });
+    });
+
+    document.querySelectorAll('#sbor-results-table .copy-col-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const col = parseInt(btn.dataset.col, 10);
+            copyColumnSbor(col);
         });
     });
 });
@@ -77,6 +84,7 @@ function toggleTheme() {
 }
 
 let raskatkaTableData = [];
+let sborTableData = [];
 
 // --- ЛОГИКА ВЕРСИИ И ОБНОВЛЕНИЯ ---
 
@@ -335,8 +343,11 @@ function btnSborStart() {
     updateStatus("Запуск сбора дополнений")
     document.getElementById('sbor_btn_start').disabled = true;
 
-    const fields = ['sbor_translit', 'sbor_coords', 'sbor_out_regions', 'sbor_index', 'sbor_errors'];
-    fields.forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = ""; });
+    const tbody = document.getElementById('sbor-results-body');
+    if (tbody) tbody.innerHTML = "";
+    sborTableData = [];
+    const errArea = document.getElementById('sbor_errors');
+    if (errArea) errArea.value = "";
 
     let addresses = document.getElementById('sbor_adresses').value.split('\n');
     let cities = document.getElementById('sbor_cities').value.split('\n');
@@ -435,7 +446,7 @@ function copyColumnRaskatka(colIndex) {
 
     const text = values.join('\n');
     navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector(`.copy-col-btn[data-col="${colIndex}"]`);
+        const btn = document.querySelector(`#raskatka-results-table .copy-col-btn[data-col="${colIndex}"]`);
         if (btn) showCopiedFeedback(btn);
     }).catch(err => {
         console.error('Ошибка копирования:', err);
@@ -482,20 +493,80 @@ function showCopiedFeedback(btn) {
 }
 
 eel.expose(update_sbor_output);
-function update_sbor_output(translit, coords, regions, index, error_msg) {
-    let t_field = document.getElementById('sbor_translit');
-    let c_field = document.getElementById('sbor_coords');
-    let r_field = document.getElementById('sbor_out_regions');
-    let i_field = document.getElementById('sbor_index');
-    let err_field = document.getElementById('sbor_errors');
+function update_sbor_output(city, translit, coords, regions, index, error_msg) {
+    const row = {
+        city: city || '',
+        translit: translit || '',
+        region: regions || '',
+        coords: coords || '',
+        index: index || ''
+    };
+    sborTableData.push(row);
 
-    t_field.value += (t_field.value ? "\n" : "") + translit;
-    c_field.value += (c_field.value ? "\n" : "") + coords;
-    r_field.value += (r_field.value ? "\n" : "") + regions;
-    i_field.value += (i_field.value ? "\n" : "") + index;
-    if (error_msg && error_msg.trim() !== "") {
+    const tbody = document.getElementById('sbor-results-body');
+    if (tbody) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td title="${escapeHtml(row.city)}">${escapeHtml(row.city)}</td>
+            <td title="${escapeHtml(row.translit)}">${escapeHtml(row.translit)}</td>
+            <td title="${escapeHtml(row.region)}">${escapeHtml(row.region)}</td>
+            <td title="${escapeHtml(row.coords)}">${escapeHtml(row.coords)}</td>
+            <td title="${escapeHtml(row.index)}">${escapeHtml(row.index)}</td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    const err_field = document.getElementById('sbor_errors');
+    if (err_field && error_msg && error_msg.trim() !== "") {
         err_field.value += (err_field.value ? "\n" : "") + error_msg;
     }
+}
+
+function copyColumnSbor(colIndex) {
+    const values = sborTableData.map(row => {
+        switch(colIndex) {
+            case 0: return row.city;
+            case 1: return row.translit;
+            case 2: return row.region;
+            case 3: return row.coords;
+            case 4: return row.index;
+        }
+    });
+
+    const text = values.join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector(`#sbor-results-table .copy-col-btn[data-col="${colIndex}"]`);
+        if (btn) showCopiedFeedback(btn);
+    }).catch(err => {
+        console.error('Ошибка копирования:', err);
+        alert('Не удалось скопировать: ' + err);
+    });
+}
+
+function copyAllSborTable() {
+    if (sborTableData.length === 0) {
+        alert('Таблица пуста');
+        return;
+    }
+
+    const headers = ['Город', 'Транслит', 'Регион', 'Координаты', 'Индекс'];
+    const rows = sborTableData.map(row => [
+        row.city,
+        row.translit,
+        row.region,
+        row.coords,
+        row.index
+    ]);
+
+    const tsv = [headers.join('\t'), ...rows.map(r => r.join('\t'))].join('\n');
+
+    navigator.clipboard.writeText(tsv).then(() => {
+        const btn = document.getElementById('sbor_copy_all');
+        if (btn) showCopiedFeedback(btn);
+    }).catch(err => {
+        console.error('Ошибка копирования таблицы:', err);
+        alert('Не удалось скопировать таблицу: ' + err);
+    });
 }
 
 // Функция для синхронизации прокрутки
